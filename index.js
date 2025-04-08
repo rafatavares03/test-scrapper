@@ -16,10 +16,11 @@ async function start() {
             let manchete = document.querySelector("h1.content-head__title")
             let lide = document.querySelector("h2.content-head__subtitle")
             let dataPublicacao = document.querySelector('time[itemprop="dateModified"]')
+            let artigo = Array.from(document.querySelectorAll("article[itemprop='articleBody'] .content-text")).map(x => x.textContent)
             if(manchete != null) dict.manchete = manchete.textContent
             if(lide != null) dict.lide = lide.textContent
             if(dataPublicacao != null) dict.dataPublicacao = dataPublicacao.getAttribute("datetime")
-
+            if(artigo != null && artigo.length != 0) dict.artigo = artigo
             return dict
         })
         const dictString = JSON.stringify(dict, null, '\t')
