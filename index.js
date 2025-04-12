@@ -2,10 +2,33 @@ const puppeteer = require('puppeteer')
 const fs = require('fs')
 const g1URL = "https://g1.globo.com/politica/"
 
+async function autoScroll(page) {
+    let previousHeight = await page.evaluate('document.body.scrollHeight');
+    let tentativas = 0;
+  
+    while (tentativas < 10) { // Limita a 10 tentativas para evitar loop infinito
+      await page.evaluate('window.scrollTo(0, document.body.scrollHeight)');
+      await new Promise(resolve => setTimeout(resolve, 2000))
+
+  
+      let newHeight = await page.evaluate('document.body.scrollHeight');
+  
+      if (newHeight === previousHeight) {
+        tentativas++;
+      } else {
+        tentativas = 0;
+        previousHeight = newHeight;
+      }
+    }
+  }
+  
 async function start() {
     const browser = await puppeteer.launch()
     const page = await browser.newPage()
     await page.goto(g1URL)
+    
+    await autoScroll(page);
+
     const link = await page.evaluate(() => {
         return Array.from(document.querySelectorAll(".feed-post-link")).map(x => x.getAttribute("href"))
     })
