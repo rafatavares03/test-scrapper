@@ -10,4 +10,6 @@
 
 ## se chiar pode ser a variavel de ambiente. só socar lá
 
+ ```markdown
 C:\Program Files\MongoDB\Server\6.0\bin
+```
