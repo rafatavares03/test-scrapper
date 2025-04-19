@@ -1,6 +1,6 @@
 ## intala o banco mongodb
 
-``` [link](https://www.mongodb.com/try/download/community) ```
+[link](https://www.mongodb.com/try/download/community)
 
 ## depois coisa ele no node do coisinha
 
