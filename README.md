@@ -4,7 +4,8 @@
 
 ## depois coisa ele no node do coisinha
 
- ``` npm install mongodb ```
+ ```markdown
+ npm install mongodb 
 
 ## se chiar pode ser a variavel de ambiente. só socar lá
 
