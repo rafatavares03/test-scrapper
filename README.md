@@ -1,10 +1,19 @@
-intala o banco mongodb
+##intala o banco mongodb
 
-'https://www.mongodb.com/try/download/community'
+'''
+https://www.mongodb.com/try/download/community
+'''
 
-depois coisa ele no node do coisinha 
+##depois coisa ele no node do coisinha 
 
-'npm install mongodb'
+'''
+npm install mongodb
+'''
+
+##se chiar pode ser a variavel de ambiente. só socar lá
+
+C:\Program Files\MongoDB\Server\6.0\bin
+
 
 
 
