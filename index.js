@@ -29,13 +29,15 @@ async function start() {
           let lide = document.querySelector("h2.content-head__subtitle")
           let dataPublicacao = document.querySelector('time[itemprop="dateModified"]')
           let artigo = Array.from(document.querySelectorAll("article[itemprop='articleBody'] .content-text")).map(x => x.textContent)
-          if (manchete) dict.manchete = manchete.textContent
+          if (manchete) {
+            dict.manchete = manchete.textContent
+          } else return null
           if (lide) dict.lide = lide.textContent
           if (dataPublicacao) dict.dataPublicacao = dataPublicacao.getAttribute("datetime")
           if (artigo && artigo.length) dict.artigo = artigo
           return dict
         })
-
+        if(dict == null) continue;
         dict.portal = "g1"
         dict.link = links[i]
 
