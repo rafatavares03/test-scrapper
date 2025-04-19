@@ -1,12 +1,11 @@
-# Instalação e Configuração do MongoDB no Node.js
+## intala o banco mongodb
 
-## 1. Instalar o MongoDB
+``` https://www.mongodb.com/try/download/community ```
 
-Acesse o link abaixo para baixar a versão Community do MongoDB:
+## depois coisa ele no node do coisinha
 
-- [Baixar MongoDB](https://www.mongodb.com/try/download/community)
+ ``` npm install mongodb ```
 
-Escolha a versão apropriada para o seu sistema operacional e siga as instruções de instalação.
+## se chiar pode ser a variavel de ambiente. só socar lá
 
-No Windows, o MongoDB será instalado por padrão em:
-
+C:\Program Files\MongoDB\Server\6.0\bin
