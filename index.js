@@ -12,7 +12,7 @@ async function start() {
     const db = client.db("meu_banco")
     const noticiasG1 = db.collection("G1_noticias")
 
-    for (let pagina = 1; pagina <= 2; pagina++) {
+    for (let pagina = 1; pagina <= 2; pagina++) {''
       let g1URL = `https://g1.globo.com/politica/index/feed/pagina-${pagina}.ghtml`
       await page.goto(g1URL, { waitUntil: "domcontentloaded" })
 
@@ -40,9 +40,19 @@ async function start() {
         if(dict == null) continue;
         dict.portal = "g1"
         dict.link = links[i]
+        dict._id = dict.link;
+        
+        try {
+          await noticiasG1.insertOne(dict)
+          console.log(`✅ Documento inserido: ${dict.manchete?.substring(0, 50)}...`)
 
-        await noticiasG1.insertOne(dict)
-        console.log(`✅ Documento inserido: ${dict.manchete?.substring(0, 50)}...`)
+        } catch (err) {
+          if(err.code == 11000){
+            console.error(`❌ noticia duplicada! ${dict.manchete.substring(0,50)}.`)
+          } else {
+            console.error("Erro ao inserir:", err)
+          }
+        }
       }
     }
 
