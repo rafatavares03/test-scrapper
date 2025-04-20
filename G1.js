@@ -40,7 +40,7 @@ async function start() {
         if(dict == null) continue;
         dict.portal = "g1"
         dict.link = links[i]
-        dict._id = dict.link;
+        dict._id = dict.link;  // link é a chave primaria 
         
         try {
           await noticiasG1.insertOne(dict)
