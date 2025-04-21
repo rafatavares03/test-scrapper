@@ -26,10 +26,13 @@ async function cnnScrap() {
     */
 
   // Coleta os links das notícias
-  for(let i = 1; i <= 3; i++) {
-    await page
-      .locator('.block-list-get-more-btn')
-      .click();
+  for(let i = 0; i <= 100; i++) {
+    // await page.locator('.block-list-get-more-btn').click();
+    await page.waitForSelector('.block-list-get-more-btn', { visible: true });
+
+  await page.evaluate(() => {
+    document.querySelector('.block-list-get-more-btn')?.click();
+  });
   } 
 
   const links = await page.evaluate(() => {
