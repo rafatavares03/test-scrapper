@@ -27,12 +27,14 @@ async function cnnScrap() {
 
   // Coleta os links das notícias
   for(let i = 0; i <= 100; i++) {
-    // await page.locator('.block-list-get-more-btn').click();
+
     await page.waitForSelector('.block-list-get-more-btn', { visible: true });
 
   await page.evaluate(() => {
     document.querySelector('.block-list-get-more-btn')?.click();
   });
+  await new Promise(resolve => setTimeout(resolve, 300)); // CERTO
+
   } 
 
   const links = await page.evaluate(() => {
