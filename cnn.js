@@ -26,10 +26,13 @@ async function cnnScrap() {
     */
 
   // Coleta os links das notícias
+  for(let i = 1; i <= 3; i++) {
+    await page
+      .locator('.block-list-get-more-btn')
+      .click();
+  } 
 
   const links = await page.evaluate(() => {
-      let botao = document.querySelector('.block-list-get-more-btn')
-      botao.click()
     return Array.from(document.querySelectorAll("a.home__list__tag")).map(el => el.getAttribute("href"))
   })
   console.log(links.length)
