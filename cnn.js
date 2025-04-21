@@ -26,15 +26,15 @@ async function cnnScrap() {
     */
 
   // Coleta os links das notícias
-  for(let i = 0; i <= 100; i++) {
+  for(let i = 0; i <= 50; i++) { //tem que pegar 500, na teoria
 
     await page.waitForSelector('.block-list-get-more-btn', { visible: true });
 
   await page.evaluate(() => {
     document.querySelector('.block-list-get-more-btn')?.click();
   });
-  await new Promise(resolve => setTimeout(resolve, 300)); // CERTO
-
+  await new Promise(resolve => setTimeout(resolve, 200000)); 
+  //surpresa! muda pra 200(0.2seg), pq tá 200seg a cada it
   } 
 
   const links = await page.evaluate(() => {
