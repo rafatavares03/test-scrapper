@@ -1,8 +1,9 @@
 const puppeteer = require('puppeteer')
 const fs = require('fs')
+const { stringify } = require('querystring')
 
 async function cnnScrap() {
-  const browser = await puppeteer.launch({ headless: true })
+  const browser = await puppeteer.launch({ headless: false })
   const page = await browser.newPage()
   await page.goto("https://www.cnnbrasil.com.br/politica/", { waitUntil: "domcontentloaded" })
 
@@ -26,20 +27,34 @@ async function cnnScrap() {
     */
 
   // Coleta os links das notícias
-  for(let i = 0; i <= 50; i++) { //tem que pegar 500, na teoria
+  for(let i = 0; i <= 1000; i++) { //tem que pegar 500, na teoria
 
+    // await page.evaluate(() => {
+    //   window.scrollTo(0, document.body.scrollHeight);
+    // });
+
+    await page.evaluate((i) => {
+      const btn = document.querySelector('.block-list-get-more-btn');
+      if (btn) {
+        btn.setAttribute('data-perpage', '100');
+        btn.setAttribute('data-page-block-list', `${i}`);
+        btn.click();
+      }
+    }, i); 
+    
+
+    
+    // await page.waitForSelector('.block-list-get-more-btn', { visible: true });
+    
+    // await page.evaluate(() => {
+      //   document.querySelector('.block-list-get-more-btn')?.click();
+      // });
+      // console.log(`contador : ${i}`)
+    } 
     await page.evaluate(() => {
       window.scrollTo(0, document.body.scrollHeight);
-    });
-    await new Promise(resolve => setTimeout(resolve, 50)); // pra desencargo  
-
-    await page.waitForSelector('.block-list-get-more-btn', { visible: true });
-
-    await page.evaluate(() => {
-      document.querySelector('.block-list-get-more-btn')?.click();
-    });
-
-  } 
+      });
+    await new Promise(resolve => setTimeout(resolve, 1000)); // pra desencargo  
 
   const links = await page.evaluate(() => {
     return Array.from(document.querySelectorAll("a.home__list__tag")).map(el => el.getAttribute("href"))
