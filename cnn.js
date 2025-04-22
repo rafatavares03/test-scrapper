@@ -28,23 +28,28 @@ async function cnnScrap() {
   // Coleta os links das notícias
   for(let i = 0; i <= 50; i++) { //tem que pegar 500, na teoria
 
+    await page.evaluate(() => {
+      window.scrollTo(0, document.body.scrollHeight);
+    });
+    await new Promise(resolve => setTimeout(resolve, 50)); // pra desencargo  
+
     await page.waitForSelector('.block-list-get-more-btn', { visible: true });
 
-  await page.evaluate(() => {
-    document.querySelector('.block-list-get-more-btn')?.click();
-  });
-  await new Promise(resolve => setTimeout(resolve, 200000)); 
-  //surpresa! muda pra 200(0.2seg), pq tá 200seg a cada it
+    await page.evaluate(() => {
+      document.querySelector('.block-list-get-more-btn')?.click();
+    });
+
   } 
 
   const links = await page.evaluate(() => {
     return Array.from(document.querySelectorAll("a.home__list__tag")).map(el => el.getAttribute("href"))
   })
+
   console.log(links.length)
-  // Imprime os links
-  for (let i = 0; i < links.length; i++) {
-    console.log(links[i])
-  }
+  // // Imprime os links
+  // for (let i = 0; i < links.length; i++) {
+  //   console.log(links[i])
+  // }
 
   await browser.close()
 }
