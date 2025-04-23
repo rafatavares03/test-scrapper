@@ -12,7 +12,7 @@ async function start() {
     const db = client.db("meu_banco")
     const noticiasG1 = db.collection("G1_noticias")
 
-    for (let pagina = 1; pagina <= 2; pagina++) {''
+    for (let pagina = 1; pagina <= 1; pagina++) {
       let g1URL = `https://g1.globo.com/politica/index/feed/pagina-${pagina}.ghtml`
       await page.goto(g1URL, { waitUntil: "domcontentloaded" })
 
@@ -29,11 +29,27 @@ async function start() {
           let lide = document.querySelector("h2.content-head__subtitle")
           let dataPublicacao = document.querySelector('time[itemprop="dateModified"]')
           let artigo = Array.from(document.querySelectorAll("article[itemprop='articleBody'] .content-text")).map(x => x.textContent)
+          let autoresTag = document.querySelector("p.top__signature__text__author-name")
+          let autores
+          if(autoresTag == null) {
+            autoresTag = document.querySelector("p.content-publication-data__from")
+            if(autoresTag == null) {
+              autores = null
+            } else {
+              autores = autoresTag.getAttribute("title").split(',')
+              if(autoresTag.textContent.includes("g1")) autores.push("g1")
+            }
+          } else {
+            autores = autoresTag.textContent
+            autores = autores.replace("Por ", '')
+          }
+
           if (manchete) {
             dict.manchete = manchete.textContent
           } else return null
           if (lide) dict.lide = lide.textContent
           if (dataPublicacao) dict.dataPublicacao = dataPublicacao.getAttribute("datetime")
+          if(autores) dict.autores = autores
           if (artigo && artigo.length) dict.artigo = artigo
           return dict
         })
@@ -41,6 +57,7 @@ async function start() {
         dict.portal = "g1"
         dict.link = links[i]
         dict._id = dict.link;  // link é a chave primaria 
+        console.log(dict)
         
         try {
           await noticiasG1.insertOne(dict)
