@@ -1,6 +1,40 @@
 const puppeteer = require('puppeteer')
 const { MongoClient } = require("mongodb")
 
+async function coletaDadosG1(pagina) {
+  let dict = await pagina.evaluate(() => {
+    const dict = {}
+    let manchete = document.querySelector("h1.content-head__title")
+    let lide = document.querySelector("h2.content-head__subtitle")
+    let dataPublicacao = document.querySelector('time[itemprop="dateModified"]')
+    let artigo = Array.from(document.querySelectorAll("article[itemprop='articleBody'] .content-text")).map(x => x.textContent)
+    let autoresTag = document.querySelector("p.top__signature__text__author-name")
+    if(autoresTag == null) {
+      autoresTag = document.querySelector("p.content-publication-data__from")
+    }
+    if (manchete) {
+      dict.manchete = manchete.textContent
+    } else return null
+    if (lide) dict.lide = lide.textContent
+    if (dataPublicacao) dict.dataPublicacao = dataPublicacao.getAttribute("datetime")
+    if(autoresTag) {
+      let autores = autoresTag.textContent
+      autores = autores.replace(/Por\s/, '')
+      if(autores.indexOf(" —") >= 0) autores = autores.slice(0, autores.indexOf(" —")) // remove o traço e a localização que vem depois dele.
+      autores = autores.split(/\,\s/)
+      if(autores[autores.length - 1].indexOf(" e " >= 0)) {
+        let dupla = autores.pop()
+        dupla = dupla.split(" e ")
+        for(let i = 0; i < dupla.length; i++) autores.push(dupla[i])
+      }
+      dict.autores = autores
+    }
+    if (artigo && artigo.length) dict.artigo = artigo
+    return dict
+  })
+  return dict
+}
+
 async function start() {
   const browser = await puppeteer.launch()
   const page = await browser.newPage()
@@ -22,54 +56,25 @@ async function start() {
 
       for (let i = 0; i < links.length; i++) {
         await page.goto(links[i], { waitUntil: "domcontentloaded" })
+        let dict = await coletaDadosG1(page)
 
-        let dict = await page.evaluate(() => {
-          const dict = {}
-          let manchete = document.querySelector("h1.content-head__title")
-          let lide = document.querySelector("h2.content-head__subtitle")
-          let dataPublicacao = document.querySelector('time[itemprop="dateModified"]')
-          let artigo = Array.from(document.querySelectorAll("article[itemprop='articleBody'] .content-text")).map(x => x.textContent)
-          let autoresTag = document.querySelector("p.top__signature__text__author-name")
-          let autores
-          if(autoresTag == null) {
-            autoresTag = document.querySelector("p.content-publication-data__from")
-            if(autoresTag == null) {
-              autores = null
-            } else {
-              autores = autoresTag.getAttribute("title").split(',')
-              if(autoresTag.textContent.includes("g1")) autores.push("g1")
-            }
-          } else {
-            autores = autoresTag.textContent
-            autores = autores.replace("Por ", '')
-          }
-
-          if (manchete) {
-            dict.manchete = manchete.textContent
-          } else return null
-          if (lide) dict.lide = lide.textContent
-          if (dataPublicacao) dict.dataPublicacao = dataPublicacao.getAttribute("datetime")
-          if(autores) dict.autores = autores
-          if (artigo && artigo.length) dict.artigo = artigo
-          return dict
-        })
         if(dict == null) continue;
         dict.portal = "g1"
         dict.link = links[i]
         dict._id = dict.link;  // link é a chave primaria 
         console.log(dict)
         
-        try {
-          await noticiasG1.insertOne(dict)
-          console.log(`✅ Documento inserido: ${dict.manchete?.substring(0, 50)}...`)
+        // try {
+        //   await noticiasG1.insertOne(dict)
+        //   console.log(`✅ Documento inserido: ${dict.manchete?.substring(0, 50)}...`)
 
-        } catch (err) {
-          if(err.code == 11000){
-            console.error(`❌ noticia duplicada! ${dict.manchete.substring(0,50)}.`)
-          } else {
-            console.error("Erro ao inserir:", err)
-          }
-        }
+        // } catch (err) {
+        //   if(err.code == 11000){
+        //     console.error(`❌ noticia duplicada! ${dict.manchete.substring(0,50)}.`)
+        //   } else {
+        //     console.error("Erro ao inserir:", err)
+        //   }
+        // }
       }
     }
 
