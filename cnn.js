@@ -2,20 +2,35 @@ const puppeteer = require('puppeteer')
 const fs = require('fs')
 const { stringify } = require('querystring')
 
+async function coletaDadosCNN(pagina, link) {
+  await pagina.goto(link, { waitUntil: "domcontentloaded"})
+  return await pagina.evaluate((link) => {
+    const dados = {}
+    let manchete = document.querySelector("h1.single-header__title")
+    let lide = document.querySelector("p.single-header__excerpt")
+    let artigo = Array.from(document.querySelectorAll("div.single-content p")).map((x) => x.textContent)
+
+    if(manchete) dados.manchete = manchete.textContent
+    else return null
+    if(lide) dados.lide = lide.textContent
+    dados.portal = "CNN"
+    dados.link = window.location.href 
+    if(artigo) dados.artigo = artigo
+
+    return dados
+  })
+}
+
 async function clicaBotao(page, qtdLinksAtual) {
   let links = await page.evaluate(() => {
     return Array.from(document.querySelectorAll("a.home__list__tag")).map(el => el.getAttribute("href"))
   })
   while(links.length <= qtdLinksAtual) {
-    let tentativas = 0
     try {
       await page.click('button.block-list-get-more-btn', {delay: 1000})
     } catch (e) {
-      tentativas++
-      if(tentativas > 100) {
         console.log("Não foi possível carregar novos conteúdos")
         return null
-      }
     }
     links = await page.evaluate(() => {
       return Array.from(document.querySelectorAll("a.home__list__tag")).map(el => el.getAttribute("href"))
@@ -34,15 +49,17 @@ async function cnnScrap() {
   })
 
   let linksQtd = links.length
-  console.log(linksQtd)
 
-  for(let i = 0; i < 3; i++) {
+  for(let i = 0; i < 1; i++) {
     for(let j = 0; j < links.length; j++) {
-      console.log(links[j])
+      let dict = await coletaDadosCNN(page, links[j])
+      console.log(dict)
     }
     links = await clicaBotao(page, linksQtd)
-    links = links.slice(linksQtd)
-    linksQtd += links.length
+    if(links != null) {
+      links = links.slice(linksQtd)
+      linksQtd += links.length
+    }
   }
 
 
