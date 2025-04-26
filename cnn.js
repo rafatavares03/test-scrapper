@@ -45,7 +45,6 @@ async function cnnScrap() {
   const page = await browser.newPage()
   await page.goto("https://www.cnnbrasil.com.br/politica/", { waitUntil: "domcontentloaded" })
 
-
   for(let i = 1; i < 10; i++){
       await page.evaluate(() => {
         window.scrollTo(0, document.body.scrollHeight);
