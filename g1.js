@@ -8,7 +8,7 @@ async function coletaDadosG1(pagina, link) {
     let manchete = document.querySelector("h1.content-head__title")
     let lide = document.querySelector("h2.content-head__subtitle")
     let dataPublicacao = document.querySelector('time[itemprop="dateModified"]')
-    let artigo = Array.from(document.querySelectorAll("article[itemprop='articleBody'] .content-text")).map(x => x.textContent)
+    let artigo = Array.from(document.querySelectorAll("article[itemprop='articleBody'] .content-text")).map(x => x.textContent.trim())
     let autoresTag = document.querySelector("p.top__signature__text__author-name")
     if(autoresTag == null) {
       autoresTag = document.querySelector("p.content-publication-data__from")
@@ -31,7 +31,7 @@ async function coletaDadosG1(pagina, link) {
     }
     dados.portal = "g1"
     dados.link = window.location.href
-    if (artigo && (artigo.length > 0)) dados.artigo = artigo.map(x => x.trim())
+    if (artigo && (artigo.length > 0)) dados.artigo = artigo
     return dados
   })
 }
