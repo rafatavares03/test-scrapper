@@ -35,7 +35,7 @@ async function uolScrap() {
         }   
         
         // uol demora pra carregar, ent tem que ter isso
-        await new Promise(resolve => setTimeout(resolve, 1500)); // pra analisar 
+        await new Promise(resolve => setTimeout(resolve, 2222)); // pra analisar 
 
             // aqui
 
