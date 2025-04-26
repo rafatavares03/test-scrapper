@@ -62,29 +62,58 @@ async function clicaBotao(page, qtdLinksAtual) {
 }
 
 async function cnnScrap() {
-  const browser = await puppeteer.launch()
+  const browser = await puppeteer.launch({headless:false})
   const page = await browser.newPage()
   await page.goto("https://www.cnnbrasil.com.br/politica/", { waitUntil: "domcontentloaded" })
 
-  let links = await page.evaluate(() => {
-    return Array.from(document.querySelectorAll("a.home__list__tag")).map(el => el.getAttribute("href"))
-  })
 
-  let linksQtd = links.length
-  let scrapingPage = await browser.newPage()
-  for(let i = 0; i < 1; i++) {
-    for(let j = 0; j < links.length; j++) {
-      let dict = await coletaDadosCNN(scrapingPage, links[j])
-      console.log(dict)
-    }
-    //await page.bringToFront()
-    //links = await clicaBotao(page, linksQtd)
-    // if(links != null) {
-    //   links = links.slice(linksQtd)
-    //   linksQtd += links.length
-    // }
+  for(let i = 1; i < 10; i++){
+      await page.evaluate(() => {
+        window.scrollTo(0, document.body.scrollHeight);
+      });
+
+      let links = await page.evaluate(() => {
+        return Array.from(document.querySelectorAll("a.home__list__tag")).map(el => el.getAttribute("href"))
+      })
+
+      // Imprime os links
+      for (let i = 0; i < links.length; i++) {
+        console.log(links[i])
+      }
+
+      await page.evaluate(() => {
+        const artigosAntigos = document.querySelectorAll('.home__list__item');
+        artigosAntigos.forEach(artigo => artigo.remove());
+      });
+
+      try {
+        let clickResult = await page.locator('button.block-list-get-more-btn').click({count: 2 ,delay: 1000})
+        console.log(clickResult)
+      } catch (e) {
+          console.log("Não foi possível carregar novos conteúdos")
+          console.log(e)
+          return null
+      }
+
+      
   }
-  await scrapingPage.close()
+
+  // let linksQtd = links.length
+  // let scrapingPage = await browser.newPage()
+  // for(let i = 0; i < 1; i++) {
+  //   // for(let j = 0; j < links.length; j++) {
+  //   //   let dict = await coletaDadosCNN(scrapingPage, links[j])
+  //   //   //console.log(dict)
+  //   // }
+
+  //   //await page.bringToFront()
+  //   //links = await clicaBotao(page, linksQtd)
+  //   // if(links != null) {
+  //   //   links = links.slice(linksQtd)
+  //   //   linksQtd += links.length
+  //   // }
+  // }
+  // await scrapingPage.close()
 
 
   // // Coleta os links das notícias
@@ -116,6 +145,8 @@ async function cnnScrap() {
   // // for (let i = 0; i < links.length; i++) {
   // //   console.log(links[i])
   // // }
+
+	    await new Promise(resolve => setTimeout(resolve, 10000)); // pra desencargo  
 
   await browser.close()
 }
