@@ -1,9 +1,10 @@
 const puppeteer = require('puppeteer')
 const { MongoClient } = require("mongodb")
 
-async function coletaDadosG1(pagina) {
-  let dict = await pagina.evaluate(() => {
-    const dict = {}
+async function coletaDadosG1(pagina, link) {
+  await pagina.goto(link, { waitUntil: "domcontentloaded" })
+  return await pagina.evaluate((link) => {
+    const dados = {}
     let manchete = document.querySelector("h1.content-head__title")
     let lide = document.querySelector("h2.content-head__subtitle")
     let dataPublicacao = document.querySelector('time[itemprop="dateModified"]')
@@ -12,27 +13,27 @@ async function coletaDadosG1(pagina) {
     if(autoresTag == null) {
       autoresTag = document.querySelector("p.content-publication-data__from")
     }
-    if (manchete) {
-      dict.manchete = manchete.textContent
-    } else return null
-    if (lide) dict.lide = lide.textContent
-    if (dataPublicacao) dict.dataPublicacao = dataPublicacao.getAttribute("datetime")
+    if(manchete) dados.manchete = manchete.textContent
+    else return null
+    if(lide) dados.lide = lide.textContent
+    if(dataPublicacao) dados.dataPublicacao = dataPublicacao.getAttribute("datetime")
     if(autoresTag) {
       let autores = autoresTag.textContent
-      autores = autores.replace(/Por\s/, '')
+      autores = autores.replace("Por", '')
       if(autores.indexOf(" —") >= 0) autores = autores.slice(0, autores.indexOf(" —")) // remove o traço e a localização que vem depois dele.
-      autores = autores.split(/\,\s/)
+      autores = autores.split(',')
       if(autores[autores.length - 1].indexOf(" e " >= 0)) {
         let dupla = autores.pop()
         dupla = dupla.split(" e ")
         for(let i = 0; i < dupla.length; i++) autores.push(dupla[i])
       }
-      dict.autores = autores
+      dados.autores = autores.map(x => x.trim())
     }
-    if (artigo && artigo.length) dict.artigo = artigo
-    return dict
+    dados.portal = "g1"
+    dados.link = window.location.href
+    if (artigo && (artigo.length > 0)) dados.artigo = artigo.map(x => x.trim())
+    return dados
   })
-  return dict
 }
 
 async function start() {
@@ -55,12 +56,9 @@ async function start() {
       })
 
       for (let i = 0; i < links.length; i++) {
-        await page.goto(links[i], { waitUntil: "domcontentloaded" })
-        let dict = await coletaDadosG1(page)
+        let dict = await coletaDadosG1(page, links[i])
 
         if(dict == null) continue;
-        dict.portal = "g1"
-        dict.link = links[i]
         dict._id = dict.link;  // link é a chave primaria 
         console.log(dict)
         
