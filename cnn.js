@@ -78,7 +78,7 @@ async function cnnScrap() {
 
   }
 	
-	await new Promise(resolve => setTimeout(resolve, 10000)); // pra desencargo  
+	await new Promise(resolve => setTimeout(resolve, 10000)); // pra analisar 
 	
   await browser.close()
 }
