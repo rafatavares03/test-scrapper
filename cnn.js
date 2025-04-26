@@ -9,7 +9,8 @@ async function coletaDadosCNN(pagina, link) {
     let manchete = document.querySelector("h1.single-header__title")
     let lide = document.querySelector("p.single-header__excerpt")
     let dataPublicacao = document.querySelector("time.single-header__time")
-    let artigo = Array.from(document.querySelectorAll("div.single-content p")).map((x) => x.textContent)
+    let autores = Array.from(document.querySelectorAll("span.author__group a")).map(x => x.textContent)
+    let artigo = Array.from(document.querySelectorAll("div.single-content p")).map(x => x.textContent)
     artigo = artigo.filter(x => x.trim().length > 0) // remove parágrafos vazios
 
     if(manchete) dados.manchete = manchete.textContent
@@ -27,6 +28,7 @@ async function coletaDadosCNN(pagina, link) {
       dataFormatada = dataFormatada.replace(/\s/g, '')
       dados.dataPublicacao = dataFormatada
     }
+    dados.autores = autores
     dados.portal = "CNN"
     dados.link = window.location.href 
     if(artigo && (artigo.length > 0)) dados.artigo = artigo
