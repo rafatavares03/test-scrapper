@@ -1,15 +1,20 @@
 const puppeteer = require('puppeteer')
 const { MongoClient } = require("mongodb")
 
-async function coletaDadosG1(pagina, link) {
+// ///////////////////////////////////////////////////////////////////////
+"https://agenciabrasil.ebc.com.br/politica/noticia/2025-04/comissao-da-camara-aprova-porte-de-arma-para-oficiais-de-justica"
+////////////////////////////////// pra facilitar pra voltar /////////
+
+
+async function coletaDadosAgenBr(pagina, link) {
   await pagina.goto(link, { waitUntil: "domcontentloaded" })
   return await pagina.evaluate((link) => {
     const dados = {}
-    let manchete = document.querySelector("h1.content-head__title")
+    let manchete = document.querySelector("h1.titulo-materia")
     let lide = document.querySelector("h2.content-head__subtitle")
     let dataPublicacao = document.querySelector('time[itemprop="dateModified"]')
     let artigo = Array.from(document.querySelectorAll("article[itemprop='articleBody'] .content-text")).map(x => x.textContent)
-    let autoresTag = document.querySelector("p.top__signature__text__author-name")
+    let autoresTag = document.querySelector(".autor-noticia")
     if(autoresTag == null) {
       autoresTag = document.querySelector("p.content-publication-data__from")
     }
@@ -44,36 +49,42 @@ async function start() {
 
   try {
     await client.connect()
-    const db = client.db("meu_banco")
-    const noticiasG1 = db.collection("Agencia_Brasil_noticias")
+    const db = client.db("Noticias-Politica")
+    const noticiasAgenBra = db.collection("Agencia_Brasil")
 
-    for (let pagina = 1; pagina <= 1; pagina++) {
-      let g1URL = `https://g1.globo.com/politica/index/feed/pagina-${pagina}.ghtml`
+    for (let pagina = 1; pagina <= 10; pagina++) {
+      let g1URL = `https://agenciabrasil.ebc.com.br/politica?page=${pagina}.ghtml`
       await page.goto(g1URL, { waitUntil: "domcontentloaded" })
 
       const links = await page.evaluate(() => {
-        return Array.from(document.querySelectorAll(".feed-post-link")).map(x => x.getAttribute("href"))
+        return Array.from(document.querySelectorAll(".capa-noticia")).map(x => x.getAttribute("href"))
       })
+      
+      // for(let i = 0; i < links.length; i++ ){
+      //   console.log(links[i])
+      // }
+      // console.log(links.length)
 
-      for (let i = 0; i < links.length; i++) {
-        let dict = await coletaDadosG1(page, links[i])
 
-        if(dict == null) continue;
-        dict._id = dict.link;  // link é a chave primaria 
-        console.log(dict)
+      // for (let i = 0; i < links.length; i++) {
+      //   let dict = await coletaDadosAgenBr(page, links[i])
+
+      //   if(dict == null) continue;
+      //   dict._id = dict.link;  // link é a chave primaria 
+      //   console.log(dict)
         
-        // try {
-        //   await noticiasG1.insertOne(dict)
-        //   console.log(`✅ Documento inserido: ${dict.manchete?.substring(0, 50)}...`)
+      //   // try {
+      //   //   await noticiasAgenBra.insertOne(dict)
+      //   //   console.log(`✅ Documento inserido: ${dict.manchete?.substring(0, 50)}...`)
 
-        // } catch (err) {
-        //   if(err.code == 11000){
-        //     console.error(`❌ noticia duplicada! ${dict.manchete.substring(0,50)}.`)
-        //   } else {
-        //     console.error("Erro ao inserir:", err)
-        //   }
-        // }
-      }
+      //   // } catch (err) {
+      //   //   if(err.code == 11000){
+      //   //     console.error(`❌ noticia duplicada! ${dict.manchete.substring(0,50)}.`)
+      //   //   } else {
+      //   //     console.error("Erro ao inserir:", err)
+      //   //   }
+      //   // }
+      // }
     }
 
   } catch (err) {

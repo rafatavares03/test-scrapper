@@ -44,8 +44,8 @@ async function start() {
 
   try {
     await client.connect()
-    const db = client.db("meu_banco")
-    const noticiasG1 = db.collection("G1_noticias")
+    const db = client.db("Noticias-Politica")
+    const noticiasG1 = db.collection("G1")
 
     for (let pagina = 1; pagina <= 1; pagina++) {
       let g1URL = `https://g1.globo.com/politica/index/feed/pagina-${pagina}.ghtml`
