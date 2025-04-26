@@ -72,6 +72,10 @@ async function cnnScrap() {
           console.log(e)
           return null
       }   
+			
+
+			// aqui
+
   }
 	
 	await new Promise(resolve => setTimeout(resolve, 10000)); // pra desencargo  
