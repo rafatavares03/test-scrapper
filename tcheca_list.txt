@@ -4,3 +4,6 @@ cnn -  sim
 g1 - sim
 agencia brasil - sim
 tempo - joia
+camaras depu - joia
+carta capital - moises fez a magia dele
+congresso - no ponto
