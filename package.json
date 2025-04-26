@@ -11,6 +11,6 @@
   "description": "",
   "dependencies": {
     "mongodb": "^6.15.0",
-    "puppeteer": "^24.6.1"
+    "puppeteer": "^24.7.1"
   }
 }

@@ -8,7 +8,7 @@ async function cnnScrap() {
   await page.goto("https://www.cnnbrasil.com.br/politica/", { waitUntil: "domcontentloaded" })
 
   // Coleta os links das notícias
-  for(let i = 0; i <= 1000; i++) { //tem que pegar 500, na teoria
+  for(let i = 0; i <= 500; i++) { //tem que pegar 500, na teoria
 
     // await page.evaluate(() => {
     //   window.scrollTo(0, document.body.scrollHeight);
@@ -17,8 +17,9 @@ async function cnnScrap() {
     await page.evaluate((i) => {
       const btn = document.querySelector('.block-list-get-more-btn');
       if (btn) {
-        // btn.setAttribute('data-perpage', '1000');  // deixa por enquanto tavares
+        btn.setAttribute('data-perpage', '50');  // deixa por enquanto tavares
         btn.setAttribute('data-page-block-list', `${i}`);
+        btn.setAttribute('data-page', `${i}`);
         btn.click();
       }
     }, i); 
@@ -27,8 +28,9 @@ async function cnnScrap() {
       window.scrollTo(0, document.body.scrollHeight);
       });
 
-    await new Promise(resolve => setTimeout(resolve, 10)); // pra desencargo  
     } 
+    console.log("5segundinhos")
+    await new Promise(resolve => setTimeout(resolve, 5000)); // pra desencargo  
 
   const links = await page.evaluate(() => {
     return Array.from(document.querySelectorAll("a.home__list__tag")).map(el => el.getAttribute("href"))
