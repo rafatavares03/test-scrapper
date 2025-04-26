@@ -1,5 +1,12 @@
 const puppeteer = require('puppeteer')
 
+async function coletaDadosCartaCapital(pagina, link) {
+  await pagina.goto(link)
+  return pagina.evaluate(() => {
+    
+  })
+}
+
 async function cartaCapitalScraping() {
   const browser = await puppeteer.launch()
   const page = await browser.newPage()
