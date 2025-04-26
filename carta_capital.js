@@ -7,7 +7,9 @@ async function coletaDadosCartaCapital(pagina, link) {
     let manchete = document.querySelector("section.s-content__heading h1")
     let lide = Array.from(document.querySelectorAll("section.s-content__heading p")).map(x => x.textContent)
     let dataPublicacao = document.querySelector("div.s-content__infos span span")
+    let autores = Array.from(document.querySelectorAll("div.s-content__infos strong")).map(x => x.textContent.trim())
     let artigo = Array.from(document.querySelectorAll(".s-content__text .content-closed p")).map(x => x.textContent.trim())
+    artigo = artigo.filter(x => x[0] != '{' && x[x.length-1] != '}')
     if(manchete) {
       dados.manchete = manchete.textContent
     } else {
@@ -27,9 +29,12 @@ async function coletaDadosCartaCapital(pagina, link) {
       let dataFormatada = `${dia}T${hora}-03:00`
       dados.dataPublicacao = dataFormatada
     }
+    dados.autores = autores
     dados.portal = "Carta Capital"
     dados.link = window.location.href
-    if(artigo.length > 0) dados.artigo = artigo
+    if(artigo.length > 0) {
+      dados.artigo = artigo
+    }
     return dados
   })
 }
