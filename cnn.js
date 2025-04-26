@@ -8,12 +8,25 @@ async function coletaDadosCNN(pagina, link) {
     const dados = {}
     let manchete = document.querySelector("h1.single-header__title")
     let lide = document.querySelector("p.single-header__excerpt")
+    let dataPublicacao = document.querySelector("time.single-header__time")
     let artigo = Array.from(document.querySelectorAll("div.single-content p")).map((x) => x.textContent)
     artigo = artigo.filter(x => x.trim().length > 0) // remove parágrafos vazios
 
     if(manchete) dados.manchete = manchete.textContent
     else return null
     if(lide) dados.lide = lide.textContent
+    if(dataPublicacao) {
+      dataTexto = dataPublicacao.textContent
+      if(dataTexto.indexOf("|") >= 0) dataTexto = dataTexto.slice(0, dataTexto.indexOf("|"))
+      dataTexto = dataTexto.split("às")
+      let dia = dataTexto[0].split("/")
+      let hora = dataTexto[1]
+      dia.reverse()
+      dia = dia.join("-")
+      dataFormatada = `${dia}T${hora}-03:00`
+      dataFormatada = dataFormatada.replace(/\s/g, '')
+      dados.dataPublicacao = dataFormatada
+    }
     dados.portal = "CNN"
     dados.link = window.location.href 
     if(artigo && (artigo.length > 0)) dados.artigo = artigo
