@@ -1,10 +1,8 @@
 const puppeteer = require('puppeteer')
-const fs = require('fs')
-const { stringify } = require('querystring')
 
 async function coletaDadosCNN(pagina, link) {
   await pagina.goto(link, { waitUntil: "domcontentloaded"})
-  return await pagina.evaluate((link) => {
+  return await pagina.evaluate(() => {
     const dados = {}
     let manchete = document.querySelector("h1.single-header__title")
     let lide = document.querySelector("p.single-header__excerpt")
