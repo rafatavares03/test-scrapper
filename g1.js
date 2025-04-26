@@ -19,19 +19,19 @@ async function coletaDadosG1(pagina, link) {
     if(dataPublicacao) dados.dataPublicacao = dataPublicacao.getAttribute("datetime")
     if(autoresTag) {
       let autores = autoresTag.textContent
-      autores = autores.replace(/Por\s/, '')
+      autores = autores.replace("Por", '')
       if(autores.indexOf(" —") >= 0) autores = autores.slice(0, autores.indexOf(" —")) // remove o traço e a localização que vem depois dele.
-      autores = autores.split(/\,\s/)
+      autores = autores.split(',')
       if(autores[autores.length - 1].indexOf(" e " >= 0)) {
         let dupla = autores.pop()
         dupla = dupla.split(" e ")
         for(let i = 0; i < dupla.length; i++) autores.push(dupla[i])
       }
-      dados.autores = autores
+      dados.autores = autores.map(x => x.trim())
     }
     dados.portal = "g1"
     dados.link = window.location.href
-    if (artigo && artigo.length) dados.artigo = artigo
+    if (artigo && (artigo.length > 0)) dados.artigo = artigo.map(x => x.trim())
     return dados
   })
 }

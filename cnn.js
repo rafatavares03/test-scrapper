@@ -9,13 +9,14 @@ async function coletaDadosCNN(pagina, link) {
     let manchete = document.querySelector("h1.single-header__title")
     let lide = document.querySelector("p.single-header__excerpt")
     let artigo = Array.from(document.querySelectorAll("div.single-content p")).map((x) => x.textContent)
+    artigo = artigo.filter(x => x.trim().length > 0) // remove parágrafos vazios
 
     if(manchete) dados.manchete = manchete.textContent
     else return null
     if(lide) dados.lide = lide.textContent
     dados.portal = "CNN"
     dados.link = window.location.href 
-    if(artigo) dados.artigo = artigo
+    if(artigo && (artigo.length > 0)) dados.artigo = artigo
 
     return dados
   })
@@ -43,7 +44,7 @@ async function clicaBotao(page, qtdLinksAtual) {
 }
 
 async function cnnScrap() {
-  const browser = await puppeteer.launch({headless:false})
+  const browser = await puppeteer.launch()
   const page = await browser.newPage()
   await page.goto("https://www.cnnbrasil.com.br/politica/", { waitUntil: "domcontentloaded" })
 
@@ -59,11 +60,11 @@ async function cnnScrap() {
       console.log(dict)
     }
     await page.bringToFront()
-    links = await clicaBotao(page, linksQtd)
-    if(links != null) {
-      links = links.slice(linksQtd)
-      linksQtd += links.length
-    }
+    //links = await clicaBotao(page, linksQtd)
+    // if(links != null) {
+    //   links = links.slice(linksQtd)
+    //   linksQtd += links.length
+    // }
   }
   await scrapingPage.close()
 
