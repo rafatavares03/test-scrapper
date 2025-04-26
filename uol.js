@@ -6,6 +6,8 @@ async function uolScrap() {
   const page = await browser.newPage()
   await page.goto("https://noticias.uol.com.br/politica/", { waitUntil: "domcontentloaded" })
 
+  await new Promise(resolve => setTimeout(resolve, 2222)); // a pagina tem que esquentar
+
   for(let i = 1; i <= 5; i++){
         await page.evaluate(() => {
           window.scrollTo(0, document.body.scrollHeight);
@@ -35,7 +37,7 @@ async function uolScrap() {
         }   
         
         // uol demora pra carregar, ent tem que ter isso
-        await new Promise(resolve => setTimeout(resolve, 2222)); // pra analisar 
+
 
             // aqui
 

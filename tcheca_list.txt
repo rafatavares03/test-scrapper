@@ -1,0 +1,6 @@
+links:
+uol - sim
+cnn -  sim
+g1 - sim
+agencia brasil - sim
+tempo - joia
