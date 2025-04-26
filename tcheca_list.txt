@@ -1,9 +1,10 @@
 links:
-uol - sim
-cnn -  sim
-g1 - sim
 agencia brasil - sim
-tempo - joia
 camaras depu - joia
 carta capital - moises fez a magia dele
+cnn -  sim
 congresso - no ponto
+forum - foi essa disgraçaaaaaaaaaaaaaaaa
+g1 - sim
+tempo - joia
+uol - sim
