@@ -60,71 +60,68 @@ async function forumScrap() {
     await client.connect()
     const db = client.db("Noticias-Politica")
     const noticiasForum = db.collection("Forum")
+
     for(let i = 1; i <= 1; i++){
-        // vai pro fim
-        await page.evaluate(() => {
-          window.scrollTo(0, document.body.scrollHeight);
-        });
-        
-        // links
-        let links = await page.evaluate(() => {
-          return Array.from(document.querySelectorAll("h2.titulo a")).map(el => el.getAttribute("href"))
-        })
-        
-        // coloca o link completo
-        let raiz = "https://revistaforum.com.br"
-        for (let i = 0; i < links.length; i++) {
-          links[i] = raiz + links[i]
-          // console.log(links[i])
-        }
-    
-        // remove os links antigos
-        await page.evaluate(() => {
-          const artigosAntigos = document.querySelectorAll('.caja')
-          artigosAntigos.forEach(artigo => artigo.remove())
-        });
+      // vai pro fim
+      await page.evaluate(() => {
+        window.scrollTo(0, document.body.scrollHeight);
+      });
       
-        // clica no botão
-        try {
-          let clickResult = await page.locator('div.btn').click({count: 2 ,delay: 1000})
-          console.log(clickResult)
-        } catch (e) {
-            console.log("Não foi possível carregar novos conteúdos")
-            console.log(e)
-            return null
-        }   
+      // links
+      let links = await page.evaluate(() => {
+        return Array.from(document.querySelectorAll("h2.titulo a")).map(el => el.getAttribute("href"))
+      })
+      
+      // coloca o link completo
+      let raiz = "https://revistaforum.com.br"
+      for (let i = 0; i < links.length; i++) {
+        links[i] = raiz + links[i]
+        // console.log(links[i])
+      }
+  
+      // remove os links antigos
+      await page.evaluate(() => {
+        const artigosAntigos = document.querySelectorAll('.caja')
+        artigosAntigos.forEach(artigo => artigo.remove())
+      });
+    
+      // clica no botão
+      try {
+        let clickResult = await page.locator('div.btn').click({count: 2 ,delay: 1000})
+        console.log(clickResult)
+      } catch (e) {
+          console.log("Não foi possível carregar novos conteúdos")
+          console.log(e)
+          return null
+      }   
+      
+      for (let i = 0; i < links.length; i++) {
+        let dict = await coletaDadosForum(page, links[i])
+
+        if(dict == null) continue;
+        dict._id = dict.link // link é a chave primaria 
+        // console.log(dict)
+        // console.log("\n\n")
         
-        for (let i = 0; i < links.length; i++) {
-          let dict = await coletaDadosForum(page, links[i])
+        try {
+          await noticiasForum.insertOne(dict)
+          console.log(`✅ Documento inserido: ${dict.manchete?.substring(0, 50)}...`)
 
-          if(dict == null) continue;
-          dict._id = dict.link // link é a chave primaria 
-          console.log(dict)
-          console.log("\n\n")
-          
-          // try {
-          //   await noticiasAgenBra.insertOne(dict)
-          //   console.log(`✅ Documento inserido: ${dict.manchete?.substring(0, 50)}...`)
-
-          // } catch (err) {
-          //   if(err.code == 11000){
-          //     console.error(`❌ noticia duplicada! ${dict.manchete.substring(0,50)}.`)
-          //   } else {
-          //     console.error("Erro ao inserir:", err)
-          //   }
-          // }
+        } catch (err) {
+          if(err.code == 11000){
+            console.error(`❌ noticia duplicada! ${dict.manchete.substring(0,50)}.`)
+          } else {
+            console.error("Erro ao inserir:", err)
+          }
         }
-
-
+      }
     }
       
-      // await new Promise(resolve => setTimeout(resolve, 10000)); // pra analisar 
-      
-    } catch {
-
+  } catch (err) {
+    console.error("Erro:", err)
   } finally {
+    await client.close()
     await browser.close()
-
   }
     
 }

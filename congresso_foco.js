@@ -40,18 +40,16 @@ async function congressoEmFocoScrap() {
   const browser = await puppeteer.launch()
   const page = await browser.newPage()
   const uri = "mongodb://localhost:27017" // padrão do mongo
-//   const client = new MongoClient(uri)
+  const client = new MongoClient(uri)
 
   try {
-    // await client.connect()
-    // const db = client.db("Noticias-Politica")
-    // const noticiasAgenBra = db.collection("O_Tempo")
+    await client.connect()
+    const db = client.db("Noticias-Politica")
+    const noticiasCongresso = db.collection("Congresso_em_foco")
 
     for (let pagina = 1; pagina <= 1; pagina++) {
       let tempoURL = `https://www.congressoemfoco.com.br/noticia?pagina=${pagina}`
       await page.goto(tempoURL, { waitUntil: "domcontentloaded" })
-
-        //   await new Promise(resolve => setTimeout(resolve, 4000)); // pra analisar 
 
       const links = await page.evaluate(() => {
         return Array.from(document.querySelectorAll("p.asset__title a")).map(x => x.getAttribute("href"))
@@ -64,31 +62,31 @@ async function congressoEmFocoScrap() {
       console.log(links.length)
 
 
-      // for (let i = 0; i < links.length; i++) {
-      //   let dict = await coletaDadosAgenBr(page, links[i])
+      for (let i = 0; i < links.length; i++) {
+        let dict = await coletaDadosAgenBr(page, links[i])
 
-      //   if(dict == null) continue;
-      //   dict._id = dict.link;  // link é a chave primaria 
-      //   console.log(dict)
+        if(dict == null) continue;
+        dict._id = dict.link;  // link é a chave primaria 
+        console.log(dict)
         
-      //   // try {
-      //   //   await noticiasAgenBra.insertOne(dict)
-      //   //   console.log(`✅ Documento inserido: ${dict.manchete?.substring(0, 50)}...`)
+        try {
+          await noticiasCongresso.insertOne(dict)
+          console.log(`✅ Documento inserido: ${dict.manchete?.substring(0, 50)}...`)
 
-      //   // } catch (err) {
-      //   //   if(err.code == 11000){
-      //   //     console.error(`❌ noticia duplicada! ${dict.manchete.substring(0,50)}.`)
-      //   //   } else {
-      //   //     console.error("Erro ao inserir:", err)
-      //   //   }
-      //   // }
-      // }
+        } catch (err) {
+          if(err.code == 11000){
+            console.error(`❌ noticia duplicada! ${dict.manchete.substring(0,50)}.`)
+          } else {
+            console.error("Erro ao inserir:", err)
+          }
+        }
+      }
     }
 
   } catch (err) {
     console.error("Erro:", err)
   } finally {
-    // await client.close()
+    await client.close()
     await browser.close()
   }
 }
