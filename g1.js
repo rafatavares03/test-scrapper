@@ -32,6 +32,7 @@ async function coletaDadosG1(pagina, link) {
     dados.portal = "g1"
     dados.link = window.location.href
     if (artigo && (artigo.length > 0)) dados.artigo = artigo
+    if(dados.artigo.length > 0) dados.artigo = dados.artigo.replaceAll(/\\n/g, '\n')
     return dados
   })
 }
@@ -62,17 +63,17 @@ async function start() {
         dict._id = dict.link;  // link é a chave primaria 
         console.log(dict)
         
-        // try {
-        //   await noticiasG1.insertOne(dict)
-        //   console.log(`✅ Documento inserido: ${dict.manchete?.substring(0, 50)}...`)
+        try {
+          await noticiasG1.insertOne(dict)
+          console.log(`✅ Documento inserido: ${dict.manchete?.substring(0, 50)}...`)
 
-        // } catch (err) {
-        //   if(err.code == 11000){
-        //     console.error(`❌ noticia duplicada! ${dict.manchete.substring(0,50)}.`)
-        //   } else {
-        //     console.error("Erro ao inserir:", err)
-        //   }
-        // }
+        } catch (err) {
+          if(err.code == 11000){
+            console.error(`❌ noticia duplicada! ${dict.manchete.substring(0,50)}.`)
+          } else {
+            console.error("Erro ao inserir:", err)
+          }
+        }
       }
     }
 

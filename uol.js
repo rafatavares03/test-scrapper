@@ -5,15 +5,14 @@ async function coletaDadosUol(pagina, link) {
   await pagina.goto(link, {waitUntil: "domcontentloaded"})
   return pagina.evaluate(() => {
     let dados = {}
+
+    // Manchete
     let manchete = document.querySelector("h1.title")
-    let dataPublicacao = document.querySelector("time.date")
-    let autores = Array.from(document.querySelectorAll(".solar-author-name")).map(x => x.innerText)
-    let artigo = Array.from(document.querySelectorAll("div.jupiter-paragraph-fragment p")).map(x => x.innerText)
-    if(manchete) {
-      dados.manchete = manchete.textContent
-    } else {
-      return null
-    }
+    if(manchete) dados.manchete = manchete.textContent
+      else return null
+
+    // Data de Publicação
+    let dataPublicacao = document.querySelector("time.date")    
     if(dataPublicacao) {
       dataPublicacao = dataPublicacao.textContent
       dataPublicacao = dataPublicacao.split(" ")
@@ -24,10 +23,17 @@ async function coletaDadosUol(pagina, link) {
       let dataFormatada = `${dia}T${hora}-03:00`
       dados.dataPublicacao = dataFormatada
     }
+
+    // Autores
+    let autores = Array.from(document.querySelectorAll(".solar-author-name")).map(x => x.innerText)
+
+    // Artigo
+    let artigo = Array.from(document.querySelectorAll("div.jupiter-paragraph-fragment p")).map(x => x.innerText)
     if(autores.length > 0) dados.autores = autores
     dados.portal = "Uol"
     dados.link = window.location.href
-    if(artigo.length > 0) dados.artigo = artigo.map(x => x.replaceAll(/\n/g, ''))
+    if(artigo.length > 0) dados.artigo = artigo.map(x => x.replaceAll(/\\n/g, '\n'))
+
     return dados
   })
 }

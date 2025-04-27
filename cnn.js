@@ -36,6 +36,8 @@ async function coletaDadosCNN(pagina, link) {
     dados.link = window.location.href 
     if(artigo && (artigo.length > 0)) dados.artigo = artigo
 
+    if(dados.artigo.length > 0) dados.artigo = dados.artigo.replaceAll(/\\n/g, '\n')
+
     return dados
   })
 }
@@ -45,42 +47,62 @@ async function cnnScrap() {
   const page = await browser.newPage()
   await page.goto("https://www.cnnbrasil.com.br/politica/", { waitUntil: "domcontentloaded" })
 
-  for(let i = 1; i < 10; i++){
-      await page.evaluate(() => {
-        window.scrollTo(0, document.body.scrollHeight);
-      });
 
-      let links = await page.evaluate(() => {
-        return Array.from(document.querySelectorAll("a.home__list__tag")).map(el => el.getAttribute("href"))
-      })
+  try{
+    await client.connect()
+    const db = client.db("Noticias-Politica")
+    const noticiasCNN = db.collection("CNN")
 
-      // Imprime os links
-      for (let i = 0; i < links.length; i++) {
-        console.log(links[i])
-      }
+    for(let i = 1; i < 10; i++){
+        await page.evaluate(() => {
+          window.scrollTo(0, document.body.scrollHeight);
+        });
 
-      await page.evaluate(() => {
-        const artigosAntigos = document.querySelectorAll('.home__list__item');
-        artigosAntigos.forEach(artigo => artigo.remove());
-      });
+        let links = await page.evaluate(() => {
+          return Array.from(document.querySelectorAll("a.home__list__tag")).map(el => el.getAttribute("href"))
+        })
 
-      try {
-        let clickResult = await page.locator('button.block-list-get-more-btn').click({count: 2 ,delay: 1000})
-        console.log(clickResult)
-      } catch (e) {
-          console.log("Não foi possível carregar novos conteúdos")
-          console.log(e)
-          return null
-      }   
-			
+        await page.evaluate(() => {
+          const artigosAntigos = document.querySelectorAll('.home__list__item');
+          artigosAntigos.forEach(artigo => artigo.remove());
+        });
 
-			// aqui
-
-  }
-	
-	await new Promise(resolve => setTimeout(resolve, 10000)); // pra analisar 
-	
-  await browser.close()
+        try {
+          let clickResult = await page.locator('button.block-list-get-more-btn').click({count: 2 ,delay: 1000})
+          console.log(clickResult)
+        } catch (e) {
+            console.log("Não foi possível carregar novos conteúdos")
+            console.log(e)
+            return null
+        }   
+        
+        for (let i = 0; i < links.length; i++) {
+          let dict = await coletaDadosCNN(page, links[i])
+  
+          if(dict == null) continue;
+          dict._id = dict.link // link é a chave primaria 
+          // console.log(dict)
+          // console.log("\n\n")
+          
+          try {
+            await noticiasCNN.insertOne(dict)
+            console.log(`✅ Documento inserido: ${dict.manchete?.substring(0, 50)}...`)
+  
+          } catch (err) {
+            if(err.code == 11000){
+              console.error(`❌ noticia duplicada! ${dict.manchete.substring(0,50)}.`)
+            } else {
+              console.error("Erro ao inserir:", err)
+            }
+          }
+        }
+    }
+  } catch (err) {
+    console.error("Erro:", err)
+  } finally {
+    await client.close()
+    await browser.close()
+  }	
 }
 
 cnnScrap()

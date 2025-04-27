@@ -45,7 +45,9 @@ async function coletaDadosCamaraDep(pagina, link) {
     dados.portal = "Portal da Câmara dos Deputados"
     dados.link = window.location.href
     if(artigo) dados.artigo = artigo.filter(x => x.length > 0)
+    if(dados.artigo.length > 0) dados.artigo = dados.artigo.replaceAll(/\\n/g, '\n')
     return dados
+  
   })
 }
 

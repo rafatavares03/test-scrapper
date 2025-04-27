@@ -4,66 +4,57 @@ const { MongoClient } = require("mongodb")
 async function coletaDadosTempo(pagina, link) {
   await pagina.goto(link, { waitUntil: "domcontentloaded" })
   return await pagina.evaluate((link) => {
-    const dados = {}
-    let manchete = document.querySelector("h1.cmp__title-title")
-    let lide = document.querySelector("h2.cmp__title-bigode")
-    let dataPublicacao = document.querySelector('.cmp__author-publication span')
-    let artigo = Array.from(document.querySelectorAll("section.read-controller")).map(x => x.textContent.trim())
-    let autoresTag = document.querySelector('.cmp__author-name span')
+    const dados = {
+      portal: "O Tempo",
+      link: link,
+    }
 
+    // Manchete
+    let manchete = document.querySelector("h1.cmp__title-title")
     if(manchete) dados.manchete = manchete.textContent.trim()
     else return null
+
+    // Lide  
+    let lide = document.querySelector("h2.cmp__title-bigode")
     if(lide) dados.lide = lide.textContent.trim()
 
+    // Data
+    let dataPublicacao = document.querySelector('.cmp__author-publication span')
     if(dataPublicacao){
-
-      const meses = {
+      let meses = {
         janeiro: '01', fevereiro: '02', março: '03', abril: '04', maio: '05', junho: '06', julho: '07', agosto: '08', setembro: '09', outubro: '10', novembro: '11', dezembro: '12'
       };
-      const [dataNova, horaNova] = dataPublicacao.textContent.split('|').map(p => p.trim());
-      const data2 = dataNova.split(' '); 
+      let [dataNova, horaNova] = dataPublicacao.textContent.split('|').map(p => p.trim());
+      let data2 = dataNova.split(' '); 
     
-      const dia = data2[0];
-      const mesNome = data2[2];
-      const ano = data2[4];
+      let dia = data2[0];
+      let mesNome = data2[2];
+      let ano = data2[4];
 
-      const mesNumero = meses[mesNome.toLowerCase()];
+      let mesNumero = meses[mesNome.toLowerCase()];
 
-      const dataFormatada = `${ano}-${mesNumero}-${dia.padStart(2, '0')}T${horaNova}:00`; 
+      let dataFormatada = `${ano}-${mesNumero}-${dia.padStart(2, '0')}T${horaNova}:00`; 
       dados.data = new Date(dataFormatada).toISOString()
     } 
-    
+
+    // Autores
+    let autoresTag = document.querySelector('.cmp__author-name span')
     if (autoresTag) {
       let autores = autoresTag.textContent.trim(); 
-      autores = autores.replace("Por", '');  
-      if (autores.indexOf(" —") >= 0) {
-        autores = autores.slice(0, autores.indexOf(" —")); 
-      }
-      autores = autores.split(','); 
-      if (autores[autores.length - 1].indexOf(" e ") >= 0) {
-        let dupla = autores.pop(); 
-        dupla = dupla.split(" e "); 
-        for (let i = 0; i < dupla.length; i++) {
-          autores.push(dupla[i].trim()); 
-        }
-      }
-      if (autores.length === 1) {
-        dados.autores = autores[0];  
-      } else {
-        dados.autores = autores.map(x => x.trim()); 
-      }
+      let arra = autores.split(/[,\/]/).map(a => a.trim()).filter(a => a.length > 0);
+      dados.autores = arra
     }
     
-    dados.portal = "tempo"
-    dados.link = link
+    // Artigo
 
-      let texto = "";
-      let pontoDePartida = document.querySelector('section.read-controller');
-      let elementos = pontoDePartida.parentElement.querySelectorAll("#bodyArticle p, #bodyArticle.h2"); // deixa .h2 que funciona. o motivo n sei, mas funciona. n mexe, pelo amor
-      for (let elemento of elementos) {
-        texto += elemento.textContent.trim() + "\n"
-      }
-      dados.artigo = texto.trim();
+    let texto = "";
+    let pontoDePartida = document.querySelector('section.read-controller');
+    let elementos = pontoDePartida.parentElement.querySelectorAll("#bodyArticle p, #bodyArticle.h2"); // deixa .h2 que funciona. o motivo n sei, mas funciona. n mexe, pelo amor
+    for (let elemento of elementos) {
+      texto += elemento.textContent.trim() + "\n"
+    }
+    dados.artigo = texto.trim();
+    if(dados.artigo.length > 0) dados.artigo = dados.artigo.replaceAll(/\\n/g, '\n')
 
     return dados
   }, link)
@@ -74,12 +65,13 @@ async function tempoScrap() {
   const browser = await puppeteer.launch({headless:true})
   const page = await browser.newPage()
   const uri = "mongodb://localhost:27017" // padrão do mongo
-//   const client = new MongoClient(uri)
+  const client = new MongoClient(uri)
 
   try {
-    // await client.connect()
-    // const db = client.db("Noticias-Politica")
-    // const noticiasAgenBra = db.collection("O_Tempo")
+    await client.connect()
+    const db = client.db("Noticias-Politica")
+    const noticiasTempo = db.collection("O_Tempo")
+    // await noticiasTempo.deleteMany({})
 
     for (let pagina = 1; pagina <= 1; pagina++) {
       let tempoURL = `https://www.otempo.com.br/politica/page/${pagina}`
@@ -105,24 +97,24 @@ async function tempoScrap() {
         console.log(dict)
         console.log("\n\n")
         
-        // try {
-        //   await noticiasAgenBra.insertOne(dict)
-        //   console.log(`✅ Documento inserido: ${dict.manchete?.substring(0, 50)}...`)
+        try {
+          await noticiasTempo.insertOne(dict)
+          console.log(`✅ Documento inserido: ${dict.manchete?.substring(0, 50)}...`)
 
-        // } catch (err) {
-        //   if(err.code == 11000){
-        //     console.error(`❌ noticia duplicada! ${dict.manchete.substring(0,50)}.`)
-        //   } else {
-        //     console.error("Erro ao inserir:", err)
-        //   }
-        // }
+        } catch (err) {
+          if(err.code == 11000){
+            console.error(`❌ noticia duplicada! ${dict.manchete.substring(0,50)}.`)
+          } else {
+            console.error("Erro ao inserir:", err)
+          }
+        }
       }
     }
 
   } catch (err) {
     console.error("Erro:", err)
   } finally {
-    // await client.close()
+    await client.close()
     await browser.close()
   }
 }
