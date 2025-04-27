@@ -42,15 +42,17 @@ async function coletaDadosCartaCapital(pagina, link) {
 async function cartaCapitalScraping() {
   const browser = await puppeteer.launch()
   const page = await browser.newPage()
-  let cartaCapitalURL = "https://www.cartacapital.com.br/politica/page/1/"
-  await page.goto(cartaCapitalURL)
-
-  let links = await page.evaluate(() => {
-    return Array.from(document.querySelectorAll("a.l-list__item")).map(x => x.getAttribute("href"))
-  })
-  for(let i = 0; i < links.length; i++) {
-    let noticia = await coletaDadosCartaCapital(page, links[i])
-    console.log(noticia)
+  
+  for(let i =1; i <= 2; i++) {
+    let cartaCapitalURL = `https://www.cartacapital.com.br/politica/page/${i}/`
+    await page.goto(cartaCapitalURL)
+    let links = await page.evaluate(() => {
+      return Array.from(document.querySelectorAll("a.l-list__item")).map(x => x.getAttribute("href"))
+    })
+    for(let i = 0; i < links.length; i++) {
+      let noticia = await coletaDadosCartaCapital(page, links[i])
+      console.log(noticia)
+    }
   }
   await browser.close()
 }
