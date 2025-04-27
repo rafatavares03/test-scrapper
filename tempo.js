@@ -36,12 +36,10 @@ async function coletaDadosTempo(pagina, link) {
     if (autoresTag) {
       let autores = autoresTag.textContent.trim(); 
       autores = autores.replace("Por", '');  
-      
       if (autores.indexOf(" —") >= 0) {
         autores = autores.slice(0, autores.indexOf(" —")); 
       }
       autores = autores.split(','); 
-    
       if (autores[autores.length - 1].indexOf(" e ") >= 0) {
         let dupla = autores.pop(); 
         dupla = dupla.split(" e "); 
@@ -49,7 +47,6 @@ async function coletaDadosTempo(pagina, link) {
           autores.push(dupla[i].trim()); 
         }
       }
-      
       if (autores.length === 1) {
         dados.autores = autores[0];  
       } else {
@@ -57,33 +54,16 @@ async function coletaDadosTempo(pagina, link) {
       }
     }
     
-
     dados.portal = "tempo"
     dados.link = link
 
       let texto = "";
-  
-      // Selecione o ponto de partida, por exemplo, um elemento com uma classe específica
       let pontoDePartida = document.querySelector('section.read-controller');
-
-      // Pegue todos os elementos depois do ponto de partida
-      let elementos = pontoDePartida.parentElement.querySelectorAll("#bodyArticle p, #bodyArticle.h2"); // Pega <p> e <h2> após o ponto de partida
-  
-      // Itere sobre os elementos
+      let elementos = pontoDePartida.parentElement.querySelectorAll("#bodyArticle p, #bodyArticle.h2"); // deixa .h2 que funciona. o motivo n sei, mas funciona. n mexe, pelo amor
       for (let elemento of elementos) {
-        // Verifique se encontramos o elemento com a classe que deve parar
-        if (elemento.classList.contains('list__container')) {
-          break; // Interrompe o loop quando a classe for encontrada
-        }
-  
-        // Adiciona o texto dos parágrafos e cabeçalhos ao resultado
         texto += elemento.textContent.trim() + "\n"
       }
-  
-      // Armazena o artigo coletado
       dados.artigo = texto.trim();
-
-
 
     return dados
   }, link)
@@ -117,7 +97,7 @@ async function tempoScrap() {
         links[i] = raiz + links[i]                  // TEM QUE TER ESSA LINHA PRA JUNTAR. sem querer ser grossoo
       }
 
-      for (let i = 0; i < 1 /*links.length*/; i++) {
+      for (let i = 0; i < links.length; i++) {
         let dict = await coletaDadosTempo(page, links[i])
 
         if(dict == null) continue;
