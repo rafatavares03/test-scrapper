@@ -3,7 +3,7 @@ const { MongoClient } = require("mongodb")
 
 async function coletaDadosG1(pagina, link) {
   await pagina.goto(link, { waitUntil: "domcontentloaded" })
-  return await pagina.evaluate((link) => {
+  return await pagina.evaluate(() => {
     const dados = {}
     let manchete = document.querySelector("h1.content-head__title")
     let lide = document.querySelector("h2.content-head__subtitle")

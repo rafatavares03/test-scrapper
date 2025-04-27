@@ -8,8 +8,8 @@ async function coletaDadosCartaCapital(pagina, link) {
     let lide = Array.from(document.querySelectorAll("section.s-content__heading p")).map(x => x.textContent)
     let dataPublicacao = document.querySelector("div.s-content__infos span span")
     let autores = Array.from(document.querySelectorAll("div.s-content__infos strong")).map(x => x.textContent.trim())
-    let artigo = Array.from(document.querySelectorAll(".s-content__text .content-closed p")).map(x => x.textContent.trim())
-    artigo = artigo.filter(x => x[0] != '{' && x[x.length-1] != '}')
+    let artigo = Array.from(document.querySelectorAll(".s-content__text .content-closed p")).map(x => x.innerText.trim())
+    artigo = artigo.filter(x => x.length > 0)
     if(manchete) {
       dados.manchete = manchete.textContent
     } else {
