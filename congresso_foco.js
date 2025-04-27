@@ -1,7 +1,42 @@
 const puppeteer = require('puppeteer')
 
-async function tempoScrap() {
-  const browser = await puppeteer.launch({headless:false})
+async function coletaDadosCongressoEmFoco(pagina, link) {
+  await pagina.goto(link, {waitUntil: "domcontentloaded"})
+  return pagina.evaluate(() => {
+    let dados = {}
+    let manchete = document.querySelector("h1.asset__title")
+    let lide = document.querySelector("h2.asset__summary")
+    let dataPublicacao = document.querySelector("p.asset__date")
+    let artigo = Array.from(document.querySelectorAll("div.html-content p")).map(x => x.innerText)
+    if(manchete) {
+      dados.manchete = manchete.textContent
+    } else {
+      return null
+    }
+    if(lide) dados.lide = lide.textContent
+    if(dataPublicacao) {
+      dataPublicacao = dataPublicacao.textContent.trim()
+      if(dataPublicacao.indexOf(" | Atualizado às ") > 0) {
+        dataPublicacao = dataPublicacao.split(" | Atualizado às ")
+      } else {
+        dataPublicacao = dataPublicacao.split(/\s/)
+      }
+      let dia = dataPublicacao[0].split("/")
+      let hora = dataPublicacao[dataPublicacao.length-1]
+      dia.reverse()
+      dia = dia.join("-")
+      let dataFormatada = `${dia}T${hora}-03:00`
+      dados.dataPublicacao = dataFormatada.replace(" ", '')
+    }
+    dados.portal = "Congresso em Foco"
+    dados.link = window.location.href
+    if(artigo) dados.artigo = artigo.filter(x => x.length > 0)
+    return dados
+  })
+}
+
+async function congressoEmFocoScrap() {
+  const browser = await puppeteer.launch()
   const page = await browser.newPage()
   const uri = "mongodb://localhost:27017" // padrão do mongo
 //   const client = new MongoClient(uri)
@@ -11,7 +46,7 @@ async function tempoScrap() {
     // const db = client.db("Noticias-Politica")
     // const noticiasAgenBra = db.collection("O_Tempo")
 
-    for (let pagina = 1; pagina <= 3; pagina++) {
+    for (let pagina = 1; pagina <= 1; pagina++) {
       let tempoURL = `https://www.congressoemfoco.com.br/noticia?pagina=${pagina}`
       await page.goto(tempoURL, { waitUntil: "domcontentloaded" })
 
@@ -22,7 +57,8 @@ async function tempoScrap() {
       })
         
       for(let i = 0; i < links.length; i++ ){
-        console.log(links[i])
+        let noticia = await coletaDadosCongressoEmFoco(page, links[i])
+        console.log(noticia)
       }
       console.log(links.length)
 
@@ -56,4 +92,4 @@ async function tempoScrap() {
   }
 }
 
-tempoScrap()
+congressoEmFocoScrap()
