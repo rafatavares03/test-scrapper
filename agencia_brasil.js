@@ -66,7 +66,7 @@ async function start() {
     await client.connect()
     const db = client.db("Noticias-Politica")
     const noticiasAgenBra = db.collection("Agencia_Brasil")
-    await noticiasAgenBra.deleteMany({})
+    // await noticiasAgenBra.deleteMany({})
 
     for (let pagina = 1; pagina <= 10; pagina++) {
       let g1URL = `https://agenciabrasil.ebc.com.br/politica?page=${pagina}`
@@ -89,19 +89,19 @@ async function start() {
 
         if(dict == null) continue;
         dict._id = dict.link;  // link é a chave primaria 
-        console.log(dict.autores)
+        // console.log(dict.autores)
         
-        // try {
-        //   await noticiasAgenBra.insertOne(dict)
-        //   console.log(`✅ Documento inserido: ${dict.manchete?.substring(0, 50)}...`)
+        try {
+          await noticiasAgenBra.insertOne(dict)
+          console.log(`✅ Documento inserido: ${dict.manchete?.substring(0, 50)}...`)
 
-        // } catch (err) {
-        //   if(err.code == 11000){
-        //     console.error(`❌ noticia duplicada! ${dict.manchete.substring(0,50)}.`)
-        //   } else {
-        //     console.error("Erro ao inserir:", err)
-        //   }
-        // }
+        } catch (err) {
+          if(err.code == 11000){
+            console.error(`❌ noticia duplicada! ${dict.manchete.substring(0,50)}.`)
+          } else {
+            console.error("Erro ao inserir:", err)
+          }
+        }
       }
     }
 

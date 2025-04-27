@@ -40,6 +40,7 @@ async function coletaDadosCartaCapital(pagina, link) {
   })
 }
 
+
 async function cartaCapitalScraping() {
   const browser = await puppeteer.launch()
   const page = await browser.newPage()
