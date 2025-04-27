@@ -67,7 +67,7 @@ async function coletaDadosTempo(pagina, link) {
       let pontoDePartida = document.querySelector('section.read-controller');
 
       // Pegue todos os elementos depois do ponto de partida
-      let elementos = pontoDePartida.parentElement.querySelectorAll('p, h2'); // Pega <p> e <h2> após o ponto de partida
+      let elementos = pontoDePartida.parentElement.querySelectorAll("#bodyArticle p, #bodyArticle h2"); // Pega <p> e <h2> após o ponto de partida
   
       // Itere sobre os elementos
       for (let elemento of elementos) {
