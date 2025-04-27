@@ -31,13 +31,10 @@ async function coletaDadosAgenBr(pagina, link) {
     let autoresTag = document.querySelector(".autor-noticia")
     if(autoresTag) {
         let autores = autoresTag.textContent
-        autores = autores.replace(/ –| - |Repórter da | - Repórteres da | e /g, ',') // não mexa no primeiro, pelo amor
+        autores = autores.split('–')[0].trim()
+        autores = autores.split('-')[0].trim()
+        autores = autores.replace(/ e /g,",")
         autores = autores.split(',')
-        if(autores[autores.length - 1].indexOf(" e " >= 0)) {
-          let dupla = autores.pop()
-          dupla = dupla.split(" e ")
-          for(let i = 0; i < dupla.length; i++) autores.push(dupla[i])
-        }
         dados.autores = autores.map(x => x.trim()).filter(a => a.length > 0)
     }
 
@@ -89,19 +86,19 @@ async function start() {
 
         if(dict == null) continue;
         dict._id = dict.link;  // link é a chave primaria 
-        // console.log(dict.autores)
+        console.log(dict.autores)
         
-        try {
-          await noticiasAgenBra.insertOne(dict)
-          console.log(`✅ Documento inserido: ${dict.manchete?.substring(0, 50)}...`)
+        // try {
+        //   await noticiasAgenBra.insertOne(dict)
+        //   console.log(`✅ Documento inserido: ${dict.manchete?.substring(0, 50)}...`)
 
-        } catch (err) {
-          if(err.code == 11000){
-            console.error(`❌ noticia duplicada! ${dict.manchete.substring(0,50)}.`)
-          } else {
-            console.error("Erro ao inserir:", err)
-          }
-        }
+        // } catch (err) {
+        //   if(err.code == 11000){
+        //     console.error(`❌ noticia duplicada! ${dict.manchete.substring(0,50)}.`)
+        //   } else {
+        //     console.error("Erro ao inserir:", err)
+        //   }
+        // }
       }
     }
 
@@ -114,3 +111,6 @@ async function start() {
 }
 
 start()
+
+
+
