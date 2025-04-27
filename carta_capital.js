@@ -52,7 +52,6 @@ async function cartaCapitalScraping() {
   })
   for(let i = 0; i < links.length; i++) {
     let noticia = await coletaDadosCartaCapital(page, links[i])
-    console.log(noticia)
   }
   await browser.close()
 }

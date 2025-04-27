@@ -1,46 +1,59 @@
 const puppeteer = require('puppeteer')
 const { MongoClient } = require("mongodb")
 
-// ///////////////////////////////////////////////////////////////////////
-"https://agenciabrasil.ebc.com.br/politica/noticia/2025-04/comissao-da-camara-aprova-porte-de-arma-para-oficiais-de-justica"
-////////////////////////////////// pra facilitar pra voltar /////////
-
-
 async function coletaDadosAgenBr(pagina, link) {
   await pagina.goto(link, { waitUntil: "domcontentloaded" })
   return await pagina.evaluate((link) => {
     const dados = {}
+    dados.portal = "Agencia_Brasil"
+    dados.link = link
+  
+    // Manchete
     let manchete = document.querySelector("h1.titulo-materia")
-    let lide = document.querySelector("h2.content-head__subtitle")
-    let dataPublicacao = document.querySelector('time[itemprop="dateModified"]')
-    let artigo = Array.from(document.querySelectorAll("article[itemprop='articleBody'] .content-text")).map(x => x.textContent)
-    let autoresTag = document.querySelector(".autor-noticia")
-    if(autoresTag == null) {
-      autoresTag = document.querySelector("p.content-publication-data__from")
-    }
-    if(manchete) dados.manchete = manchete.textContent
+    if(manchete) dados.manchete = manchete.textContent.trim()
     else return null
+
+    // Lide
+    let lide = document.querySelector("div.linha-fina-noticia")
     if(lide) dados.lide = lide.textContent
-    if(dataPublicacao) dados.dataPublicacao = dataPublicacao.getAttribute("datetime")
-    if(autoresTag) {
-      let autores = autoresTag.textContent
-      autores = autores.replace("Por", '')
-      if(autores.indexOf(" —") >= 0) autores = autores.slice(0, autores.indexOf(" —")) // remove o traço e a localização que vem depois dele.
-      autores = autores.split(',')
-      if(autores[autores.length - 1].indexOf(" e " >= 0)) {
-        let dupla = autores.pop()
-        dupla = dupla.split(" e ")
-        for(let i = 0; i < dupla.length; i++) autores.push(dupla[i])
-      }
-      dados.autores = autores.map(x => x.trim())
+
+    // Data de Publicação
+    let dataPublicacao = document.querySelector('.data')
+    if(dataPublicacao){
+      let texto = dataPublicacao.textContent.replace("Publicado em ", "").trim()
+      let [data, hora] = texto.split(' - ')
+      let [dia, mes, ano] = data.split('/')
+      let dataISO = `${ano}-${mes}-${dia}T${hora}:00`
+      dados.dataPublicacao = new Date(dataISO).toISOString()
     }
-    dados.portal = "g1"
-    dados.link = window.location.href
-    if (artigo && (artigo.length > 0)) dados.artigo = artigo.map(x => x.trim())
+    
+    // Autores
+    let autoresTag = document.querySelector(".autor-noticia")
+    if(autoresTag) {
+        let autores = autoresTag.textContent
+        autores = autores.replace(/ –| - |Repórter da | - Repórteres da | e /g, ',') // não mexa no primeiro, pelo amor
+        autores = autores.split(',')
+        if(autores[autores.length - 1].indexOf(" e " >= 0)) {
+          let dupla = autores.pop()
+          dupla = dupla.split(" e ")
+          for(let i = 0; i < dupla.length; i++) autores.push(dupla[i])
+        }
+        dados.autores = autores.map(x => x.trim()).filter(a => a.length > 0)
+    }
+
+    // Artigo
+    let texto = "";
+    let pontoDePartida = document.querySelector('div.conteudo-noticia')
+    let elementos = pontoDePartida.parentElement.querySelectorAll("p,h2") 
+    for (let elemento of elementos) {
+      texto += elemento.textContent.trim() + "\n"
+    }
+    dados.artigo = texto.trim();
 
     if(dados.artigo.length > 0) dados.artigo = dados.artigo.replaceAll(/\\n/g, '\n')
+
     return dados
-  })
+  }, link)
 }
 
 async function start() {
@@ -53,40 +66,43 @@ async function start() {
     await client.connect()
     const db = client.db("Noticias-Politica")
     const noticiasAgenBra = db.collection("Agencia_Brasil")
+    await noticiasAgenBra.deleteMany({})
 
     for (let pagina = 1; pagina <= 10; pagina++) {
-      let g1URL = `https://agenciabrasil.ebc.com.br/politica?page=${pagina}.ghtml`
+      let g1URL = `https://agenciabrasil.ebc.com.br/politica?page=${pagina}`
       await page.goto(g1URL, { waitUntil: "domcontentloaded" })
 
       const links = await page.evaluate(() => {
         return Array.from(document.querySelectorAll(".capa-noticia")).map(x => x.getAttribute("href"))
       })
-      
-      // for(let i = 0; i < links.length; i++ ){
-      //   console.log(links[i])
-      // }
-      // console.log(links.length)
 
 
-      // for (let i = 0; i < links.length; i++) {
-      //   let dict = await coletaDadosAgenBr(page, links[i])
+      let raiz = "https://agenciabrasil.ebc.com.br"
+      for(let i = 0; i < links.length; i++ ){
+        links[i] = raiz + links[i]
+        // console.log(links[i])
+      }
 
-      //   if(dict == null) continue;
-      //   dict._id = dict.link;  // link é a chave primaria 
-      //   console.log(dict)
+
+      for (let i = 0; i < links.length; i++) {
+        let dict = await coletaDadosAgenBr(page, links[i])
+
+        if(dict == null) continue;
+        dict._id = dict.link;  // link é a chave primaria 
+        console.log(dict.autores)
         
-      //   // try {
-      //   //   await noticiasAgenBra.insertOne(dict)
-      //   //   console.log(`✅ Documento inserido: ${dict.manchete?.substring(0, 50)}...`)
+        // try {
+        //   await noticiasAgenBra.insertOne(dict)
+        //   console.log(`✅ Documento inserido: ${dict.manchete?.substring(0, 50)}...`)
 
-      //   // } catch (err) {
-      //   //   if(err.code == 11000){
-      //   //     console.error(`❌ noticia duplicada! ${dict.manchete.substring(0,50)}.`)
-      //   //   } else {
-      //   //     console.error("Erro ao inserir:", err)
-      //   //   }
-      //   // }
-      // }
+        // } catch (err) {
+        //   if(err.code == 11000){
+        //     console.error(`❌ noticia duplicada! ${dict.manchete.substring(0,50)}.`)
+        //   } else {
+        //     console.error("Erro ao inserir:", err)
+        //   }
+        // }
+      }
     }
 
   } catch (err) {
