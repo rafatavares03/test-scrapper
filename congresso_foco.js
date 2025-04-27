@@ -31,6 +31,7 @@ async function coletaDadosCongressoEmFoco(pagina, link) {
     dados.portal = "Congresso em Foco"
     dados.link = window.location.href
     if(artigo) dados.artigo = artigo.filter(x => x.length > 0)
+    if(dados.artigo.length > 0) dados.artigo = dados.artigo.replaceAll(/\\n/g, '\n')
     return dados
   })
 }

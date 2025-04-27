@@ -37,6 +37,8 @@ async function coletaDadosAgenBr(pagina, link) {
     dados.portal = "g1"
     dados.link = window.location.href
     if (artigo && (artigo.length > 0)) dados.artigo = artigo.map(x => x.trim())
+
+    if(dados.artigo.length > 0) dados.artigo = dados.artigo.replaceAll(/\\n/g, '\n')
     return dados
   })
 }
