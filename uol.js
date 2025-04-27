@@ -27,7 +27,7 @@ async function coletaDadosUol(pagina, link) {
     if(autores.length > 0) dados.autores = autores
     dados.portal = "Uol"
     dados.link = window.location.href
-    if(artigo.length > 0) dados.artigo = artigo
+    if(artigo.length > 0) dados.artigo = artigo.map(x => x.replaceAll(/\n/g, ''))
     return dados
   })
 }
