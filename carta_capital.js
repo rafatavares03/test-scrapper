@@ -33,10 +33,9 @@ async function coletaDadosCartaCapital(pagina, link) {
     dados.portal = "Carta Capital"
     dados.link = window.location.href
     if(artigo.length > 0) {
-      dados.artigo = artigo
+      dados.artigo = artigo.map(x => x.replaceAll(/\\n/g, '\n'))
     }
 
-    if(dados.artigo.length > 0) dados.artigo = dados.artigo.replaceAll(/\\n/g, '\n')
     return dados
   })
 }
