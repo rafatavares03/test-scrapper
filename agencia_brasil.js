@@ -86,19 +86,19 @@ async function start() {
 
         if(dict == null) continue;
         dict._id = dict.link;  // link é a chave primaria 
-        console.log(dict.autores)
+        // console.log(dict.autores)
         
-        // try {
-        //   await noticiasAgenBra.insertOne(dict)
-        //   console.log(`✅ Documento inserido: ${dict.manchete?.substring(0, 50)}...`)
+        try {
+          await noticiasAgenBra.insertOne(dict)
+          console.log(`✅ Documento inserido: ${dict.manchete?.substring(0, 50)}...`)
 
-        // } catch (err) {
-        //   if(err.code == 11000){
-        //     console.error(`❌ noticia duplicada! ${dict.manchete.substring(0,50)}.`)
-        //   } else {
-        //     console.error("Erro ao inserir:", err)
-        //   }
-        // }
+        } catch (err) {
+          if(err.code == 11000){
+            console.error(`❌ noticia duplicada! ${dict.manchete.substring(0,50)}.`)
+          } else {
+            console.error("Erro ao inserir:", err)
+          }
+        }
       }
     }
 
