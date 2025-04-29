@@ -1,4 +1,5 @@
 const puppeteer = require('puppeteer')
+const { MongoClient } = require("mongodb")
 
 async function coletaDadosCNN(pagina, link) {
   await pagina.goto(link, { waitUntil: "domcontentloaded"})
@@ -46,6 +47,9 @@ async function cnnScrap() {
   const browser = await puppeteer.launch({headless:false})
   const page = await browser.newPage()
   await page.goto("https://www.cnnbrasil.com.br/politica/", { waitUntil: "domcontentloaded" })
+  const uri = "mongodb://localhost:27017" // padrão do mongo
+  const client = new MongoClient(uri)
+  
 
 
   try{
