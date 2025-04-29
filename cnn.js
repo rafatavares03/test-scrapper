@@ -37,7 +37,7 @@ async function coletaDadosCNN(pagina, link) {
     dados.link = window.location.href 
     if(artigo && (artigo.length > 0)) dados.artigo = artigo
 
-    if(dados.artigo.length > 0) dados.artigo = dados.artigo.replaceAll(/\\n/g, '\n')
+    if(dados.artigo.length > 0) dados.artigo = dados.artigo.map(x => x.replaceAll(/\\n/g, '\n'))
 
     return dados
   })
