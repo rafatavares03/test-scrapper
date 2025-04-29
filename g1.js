@@ -37,7 +37,7 @@ async function coletaDadosG1(pagina, link) {
   })
 }
 
-async function start() {
+async function scrapG1() {
   const browser = await puppeteer.launch()
   const page = await browser.newPage()
   const uri = "mongodb://localhost:27017" // padrão do mongo
@@ -55,9 +55,11 @@ async function start() {
       const links = await page.evaluate(() => {
         return Array.from(document.querySelectorAll(".feed-post-link")).map(x => x.getAttribute("href"))
       })
-
+      
+      let scrapingPage = await browser.newPage()
+      await scrapingPage.bringToFront()
       for (let i = 0; i < links.length; i++) {
-        let dict = await coletaDadosG1(page, links[i])
+        let dict = await coletaDadosG1(scrapingPage, links[i])
 
         if(dict == null) continue;
         dict._id = dict.link;  // link é a chave primaria 
@@ -75,6 +77,8 @@ async function start() {
           }
         }
       }
+      await scrapingPage.close()
+      await page.bringToFront()
     }
 
   } catch (err) {
@@ -85,4 +89,4 @@ async function start() {
   }
 }
 
-start()
+scrapG1()

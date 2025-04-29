@@ -80,8 +80,10 @@ async function cnnScrap() {
             return null
         }   
         
+        let scrapingPage = await browser.newPage()
+        await scrapingPage.bringToFront()
         for (let i = 0; i < links.length; i++) {
-          let dict = await coletaDadosCNN(page, links[i])
+          let dict = await coletaDadosCNN(scrapingPage, links[i])
   
           if(dict == null) continue;
           dict._id = dict.link // link é a chave primaria 
@@ -100,6 +102,8 @@ async function cnnScrap() {
             }
           }
         }
+        await scrapingPage.close()
+        await page.bringToFront()
     }
   } catch (err) {
     console.error("Erro:", err)

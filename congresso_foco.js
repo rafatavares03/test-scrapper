@@ -61,9 +61,10 @@ async function congressoEmFocoScrap() {
       }
       console.log(links.length)
 
-
+      let scrapingPage = await browser.newPage()
+      await scrapingPage.bringToFront()
       for (let i = 0; i < links.length; i++) {
-        let dict = await coletaDadosAgenBr(page, links[i])
+        let dict = await coletaDadosAgenBr(scrapingPage, links[i])
 
         if(dict == null) continue;
         dict._id = dict.link;  // link é a chave primaria 
@@ -81,6 +82,8 @@ async function congressoEmFocoScrap() {
           }
         }
       }
+      await scrapingPage.close()
+      await page.bringToFront()
     }
 
   } catch (err) {

@@ -69,9 +69,11 @@ async function camaraDepScrap() {
       const links = await page.evaluate(() => {
         return Array.from(document.querySelectorAll("h3.g-chamada__titulo a")).map(x => x.getAttribute("href"))
       })
-
+      
+      let scrapingPage = await browser.newPage()
+      await scrapingPage.bringToFront()
       for (let i = 0; i < links.length; i++) {
-        let dict = await coletaDadosAgenBr(page, links[i])
+        let dict = await coletaDadosAgenBr(scrapingPage, links[i])
 
         if(dict == null) continue;
         dict._id = dict.link;  // link é a chave primaria 
@@ -89,6 +91,8 @@ async function camaraDepScrap() {
           }
         }
       }
+      await scrapingPage.close()
+      await page.bringToFront()
     }
 
   } catch (err) {
