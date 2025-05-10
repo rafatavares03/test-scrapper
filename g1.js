@@ -1,5 +1,4 @@
 const puppeteer = require('puppeteer')
-const { MongoClient } = require("mongodb")
 
 async function coletaDadosG1(pagina, link) {
   await pagina.goto(link, { waitUntil: "domcontentloaded" })
@@ -8,7 +7,6 @@ async function coletaDadosG1(pagina, link) {
     let manchete = document.querySelector("h1.content-head__title")
     let lide = document.querySelector("h2.content-head__subtitle")
     let dataPublicacao = document.querySelector('time[itemprop="dateModified"]')
-    let artigo = Array.from(document.querySelectorAll("article[itemprop='articleBody'] .content-text")).map(x => x.textContent.trim())
     let autoresTag = document.querySelector("p.top__signature__text__author-name")
     if(autoresTag == null) {
       autoresTag = document.querySelector("p.content-publication-data__from")
@@ -31,8 +29,6 @@ async function coletaDadosG1(pagina, link) {
     }
     dados.portal = "g1"
     dados.link = window.location.href
-    if (artigo && (artigo.length > 0)) dados.artigo = artigo
-    if(dados.artigo.length > 0) dados.artigo = dados.artigo.map(x => x.replaceAll(/\\n/g, '\n'))
     return dados
   })
 }
@@ -40,47 +36,27 @@ async function coletaDadosG1(pagina, link) {
 async function start() {
   const browser = await puppeteer.launch()
   const page = await browser.newPage()
-  const uri = "mongodb://localhost:27017" // padrão do mongo
-  const client = new MongoClient(uri)
 
   try {
-    await client.connect()
-    const db = client.db("Noticias-Politica")
-    const noticiasG1 = db.collection("G1")
-
-    for (let pagina = 1; pagina <= 1; pagina++) {
-      let g1URL = `https://g1.globo.com/politica/index/feed/pagina-${pagina}.ghtml`
+    for (let pagina = 1; pagina <= 100; pagina++) {
+      let g1URL = `https://g1.globo.com/economia/agronegocios/index/feed/pagina-${pagina}.ghtml`
       await page.goto(g1URL, { waitUntil: "domcontentloaded" })
 
-      const links = await page.evaluate(() => {
+      let links= await page.evaluate(() => {
         return Array.from(document.querySelectorAll(".feed-post-link")).map(x => x.getAttribute("href"))
       })
-
       for (let i = 0; i < links.length; i++) {
         let dict = await coletaDadosG1(page, links[i])
 
         if(dict == null) continue;
-        dict._id = dict.link;  // link é a chave primaria 
         console.log(dict)
-        
-        try {
-          await noticiasG1.insertOne(dict)
-          console.log(`✅ Documento inserido: ${dict.manchete?.substring(0, 50)}...`)
-
-        } catch (err) {
-          if(err.code == 11000){
-            console.error(`❌ noticia duplicada! ${dict.manchete.substring(0,50)}.`)
-          } else {
-            console.error("Erro ao inserir:", err)
-          }
-        }
+  
       }
     }
 
   } catch (err) {
     console.error("Erro:", err)
   } finally {
-    await client.close()
     await browser.close()
   }
 }
