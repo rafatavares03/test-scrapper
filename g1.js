@@ -33,7 +33,7 @@ async function coletaDadosG1(pagina, link) {
   })
 }
 
-async function start() {
+async function scrapG1() {
   const browser = await puppeteer.launch()
   const page = await browser.newPage()
 
@@ -45,13 +45,18 @@ async function start() {
       let links= await page.evaluate(() => {
         return Array.from(document.querySelectorAll(".feed-post-link")).map(x => x.getAttribute("href"))
       })
+      
+      let scrapingPage = await browser.newPage()
+      await scrapingPage.bringToFront()
       for (let i = 0; i < links.length; i++) {
-        let dict = await coletaDadosG1(page, links[i])
+        let dict = await coletaDadosG1(scrapingPage, links[i])
 
         if(dict == null) continue;
         console.log(dict)
   
       }
+      await scrapingPage.close()
+      await page.bringToFront()
     }
 
   } catch (err) {
@@ -61,4 +66,4 @@ async function start() {
   }
 }
 
-start()
+scrapG1()

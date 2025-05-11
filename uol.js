@@ -57,7 +57,7 @@ async function uolScrap() {
         await scrapingPage.bringToFront()
         // Imprime os links
         for (let i = 0; i < links.length; i++) {
-            let noticia = await coletaDadosUol(page, links[i])
+            let noticia = await coletaDadosUol(scrapingPage, links[i])
             console.log(noticia)
         }
         await scrapingPage.close()

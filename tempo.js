@@ -89,8 +89,11 @@ async function tempoScrap() {
         links[i] = raiz + links[i]                  // TEM QUE TER ESSA LINHA PRA JUNTAR. sem querer ser grossoo
       }
 
+
+      let scrapingPage = await browser.newPage()
+      await scrapingPage.bringToFront()
       for (let i = 0; i < links.length; i++) {
-        let dict = await coletaDadosTempo(page, links[i])
+        let dict = await coletaDadosTempo(scrapingPage, links[i])
 
         if(dict == null) continue;
         dict._id = dict.link;  // link é a chave primaria 
@@ -109,6 +112,8 @@ async function tempoScrap() {
           }
         }
       }
+      await scrapingPage.close()
+      await page.bringToFront()
     }
 
   } catch (err) {
