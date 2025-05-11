@@ -42,13 +42,11 @@ async function coletaDadosForum(pagina, link) {
 async function forumScrap() {
   const browser = await puppeteer.launch({headless:true})
   const page = await browser.newPage()
-  await page.goto("https://revistaforum.com.br/politica/", { waitUntil: "domcontentloaded" })
-  const uri = "mongodb://localhost:27017" // padrão do mongo
-  const client = new MongoClient(uri)
-  
+  await page.goto("https://revistaforum.com.br/temas/agronegocio-5.html", { waitUntil: "domcontentloaded" })
+ 
 
   try{
-    for(let i = 1; i <= 1; i++){
+    for(let i = 1; i <= 2; i++){
       // vai pro fim
       await page.evaluate(() => {
         window.scrollTo(0, document.body.scrollHeight);
@@ -56,7 +54,7 @@ async function forumScrap() {
       
       // links
       let links = await page.evaluate(() => {
-        return Array.from(document.querySelectorAll("h2.titulo a")).map(el => el.getAttribute("href"))
+        return Array.from(document.querySelectorAll(".col-xs-4 a")).map(el => el.getAttribute("href"))
       })
       
       // coloca o link completo
@@ -65,22 +63,25 @@ async function forumScrap() {
         links[i] = raiz + links[i]
         // console.log(links[i])
       }
-  
+
+      
       // remove os links antigos
       await page.evaluate(() => {
         const artigosAntigos = document.querySelectorAll('.caja')
         artigosAntigos.forEach(artigo => artigo.remove())
       });
-    
+      
       // clica no botão
       try {
         let clickResult = await page.locator('div.btn').click({count: 2 ,delay: 1000})
         console.log(clickResult)
       } catch (e) {
-          console.log("Não foi possível carregar novos conteúdos")
-          console.log(e)
-          return null
+        console.log("Não foi possível carregar novos conteúdos")
+        console.log(e)
+        return null
       }   
+
+      // await new Promise(resolve => setTimeout(resolve, 4000));
       
       let scrapingPage = await browser.newPage()
       await scrapingPage.bringToFront()

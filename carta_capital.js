@@ -4,12 +4,14 @@ const { MongoClient } = require("mongodb")
 
 async function coletaDadosCartaCapital(pagina, link) {
   await pagina.goto(link)
-  return pagina.evaluate(() => {
-    let dados = {}
-    dados.portal = "Carta Capital"
-    dados.link = link
+  return pagina.evaluate((link) => {
+        const dados = {
+      portal: "Carta Capital",
+      link: link,
+    }
     let manchete = document.querySelector("section.s-content__heading h1")
-    let lide = Array.from(document.querySelectorAll("section.s-content__heading p")).map(x => x.textContent)
+    let lide = Array.from(document.querySelector("button[data-excerpt]").dataset.excerpt)
+
     let dataPublicacao = document.querySelector("div.s-content__infos span span")
     let autores = Array.from(document.querySelectorAll("div.s-content__infos strong")).map(x => x.textContent.trim())
 
@@ -18,10 +20,12 @@ async function coletaDadosCartaCapital(pagina, link) {
     } else {
       return null
     }
+
     if(lide.length > 0) {
-      lide = lide.filter(x => x.length > 0)
+      // lide.textContent
       dados.lide = lide[0]
     } 
+
     if(dataPublicacao) {
       dataPublicacao = dataPublicacao.textContent.trim()
       dataPublicacao = dataPublicacao.split(" ")
@@ -40,13 +44,13 @@ async function coletaDadosCartaCapital(pagina, link) {
 
 
 async function cartaCapitalScraping() {
-  const browser = await puppeteer.launch({headless: false})
+  const browser = await puppeteer.launch({headless: true})
   const page = await browser.newPage()
 
   try {
 
-    for (let pagina = 1; pagina <= 10; pagina++) {
-      let cartaCapitalURL = `https://www.cartacapital.com.br/politica/page/${pagina}/`
+    for (let pagina = 1; pagina < 3; pagina++) {
+      let cartaCapitalURL = `https://www.cartacapital.com.br/tag/agronegocio/page/${pagina}/`
       await page.goto(cartaCapitalURL, { waitUntil: "domcontentloaded" })
 
       const links = await page.evaluate(() => {

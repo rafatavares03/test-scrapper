@@ -54,7 +54,7 @@ async function tempoScrap() {
   const page = await browser.newPage()
 
   try {
-    for (let pagina = 1; pagina <= 1; pagina++) {
+    for (let pagina = 1; pagina <= 2; pagina++) {
       let tempoURL = `https://www.otempo.com.br/politica/page/${pagina}`
       await page.goto(tempoURL, { waitUntil: "domcontentloaded" })
 

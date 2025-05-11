@@ -42,14 +42,14 @@ async function coletaDadosAgenBr(pagina, link) {
   }, link)
 }
 
-async function start() {
+async function agenciabrasilScrap(){
   const browser = await puppeteer.launch()
   const page = await browser.newPage()
 
   try {
-    for (let pagina = 1; pagina <= 10; pagina++) {
-      let g1URL = `https://agenciabrasil.ebc.com.br/politica?page=${pagina}`
-      await page.goto(g1URL, { waitUntil: "domcontentloaded" })
+    for (let pagina = 1; pagina <= 2; pagina++) {
+      let agencia = `https://agenciabrasil.ebc.com.br/tags/agronegocio-0?page=${pagina}`
+      await page.goto(agencia, { waitUntil: "domcontentloaded" })
 
       const links = await page.evaluate(() => {
         return Array.from(document.querySelectorAll(".capa-noticia")).map(x => x.getAttribute("href"))
@@ -83,7 +83,7 @@ async function start() {
   }
 }
 
-start()
+agenciabrasilScrap()
 
 
 

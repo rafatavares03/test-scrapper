@@ -3,7 +3,7 @@ const { MongoClient } = require("mongodb")
 
 async function coletaDadosCNN(pagina, link) {
   await pagina.goto(link, { waitUntil: "domcontentloaded"})
-  return await pagina.evaluate(() => {
+  return await pagina.evaluate((link) => {
     const dados = {}
     let manchete = document.querySelector("h1.single-header__title")
     let lide = document.querySelector("p.single-header__excerpt")
@@ -41,50 +41,35 @@ async function coletaDadosCNN(pagina, link) {
 async function cnnScrap() {
   const browser = await puppeteer.launch({headless:true})
   const page = await browser.newPage()
-  await page.goto("https://www.cnnbrasil.com.br/politica/", { waitUntil: "domcontentloaded" })
+  await page.goto("https://www.cnnbrasil.com.br/tudo-sobre/agronegocio/", { waitUntil: "domcontentloaded" })
 
-  try{
-    for(let i = 1; i < 25; i++){
-        await page.evaluate(() => {
-          window.scrollTo(0, document.body.scrollHeight);
-        });
+    try {
+    for (let pagina = 1; pagina <= 2; pagina++) {
+      let cnnPage = `https://www.cnnbrasil.com.br/tudo-sobre/agronegocio/pagina/${pagina}`
+      await page.goto(cnnPage, { waitUntil: "domcontentloaded" })
 
-        let links = await page.evaluate(() => {
-          return Array.from(document.querySelectorAll("a.home__list__tag")).map(el => el.getAttribute("href"))
-        })
+      let links = await page.evaluate(() => {
+        return Array.from(document.querySelectorAll("a.home__list__tag")).map(el => el.getAttribute("href"))
+      })
+    
+      let scrapingPage = await browser.newPage()
+      await scrapingPage.bringToFront()
+      for (let i = 0; i < links.length; i++) {
+        let dict = await coletaDadosCNN(scrapingPage, links[i])
 
-        await page.evaluate(() => {
-          const artigosAntigos = document.querySelectorAll('.home__list__item');
-          artigosAntigos.forEach(artigo => artigo.remove());
-        });
-
-        try {
-          let clickResult = await page.locator('button.block-list-get-more-btn').click({count: 2 ,delay: 1000})
-          console.log(clickResult)
-        } catch (e) {
-            console.log("Não foi possível carregar novos conteúdos")
-            console.log(e)
-            return null
-        }   
-        
-        let scrapingPage = await browser.newPage()
-        await scrapingPage.bringToFront()
-        for (let i = 0; i < links.length; i++) {
-          let dict = await coletaDadosCNN(scrapingPage, links[i])
+        if(dict == null) continue;
+        console.log(dict)
   
-          if(dict == null) continue;
-          dict._id = dict.link // link é a chave primaria 
-          console.log(dict)
-          // console.log("\n\n")
-        }
-        await scrapingPage.close()
-        await page.bringToFront()
+      }
+      await scrapingPage.close()
+      await page.bringToFront()
     }
+
   } catch (err) {
     console.error("Erro:", err)
   } finally {
     await browser.close()
-  }	
+  }
 }
 
 cnnScrap()

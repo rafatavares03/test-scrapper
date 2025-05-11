@@ -38,7 +38,7 @@ async function scrapG1() {
   const page = await browser.newPage()
 
   try {
-    for (let pagina = 1; pagina <= 100; pagina++) {
+    for (let pagina = 1; pagina <= 2; pagina++) {
       let g1URL = `https://g1.globo.com/economia/agronegocios/index/feed/pagina-${pagina}.ghtml`
       await page.goto(g1URL, { waitUntil: "domcontentloaded" })
 

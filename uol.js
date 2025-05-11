@@ -3,7 +3,7 @@ const fs = require('fs')
 
 async function coletaDadosUol(pagina, link) {
   await pagina.goto(link, {waitUntil: "domcontentloaded"})
-  return pagina.evaluate(() => {
+  return pagina.evaluate((link) => {
     let dados = {}
 
     dados.portal = "Uol"
@@ -38,10 +38,10 @@ async function coletaDadosUol(pagina, link) {
 async function uolScrap() {
   const browser = await puppeteer.launch()
   const page = await browser.newPage()
-  await page.goto("https://noticias.uol.com.br/politica/", { waitUntil: "domcontentloaded" })
+  await page.goto("https://economia.uol.com.br/agronegocio/ultimas/", { waitUntil: "domcontentloaded" })
 
   try{
-    for(let i = 1; i <= 1; i++){
+    for(let i = 1; i <= 2; i++){
       await page.evaluate(() => {
           window.scrollTo(0, document.body.scrollHeight);
         });
