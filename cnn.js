@@ -14,8 +14,6 @@ async function coletaDadosCNN(pagina, link) {
     } else {
       autores = new Array(autores.textContent)
     }
-    let artigo = Array.from(document.querySelectorAll("div.single-content p")).map(x => x.textContent)
-    artigo = artigo.filter(x => x.trim().length > 0) // remove parágrafos vazios
 
     if(manchete) dados.manchete = manchete.textContent
     else return null
@@ -34,30 +32,19 @@ async function coletaDadosCNN(pagina, link) {
     }
     dados.autores = autores
     dados.portal = "CNN"
-    dados.link = window.location.href 
-    if(artigo && (artigo.length > 0)) dados.artigo = artigo
-
-    if(dados.artigo.length > 0) dados.artigo = dados.artigo.map(x => x.replaceAll(/\\n/g, '\n'))
+    dados.link = link
 
     return dados
-  })
+  }, link)
 }
 
 async function cnnScrap() {
-  const browser = await puppeteer.launch({headless:false})
+  const browser = await puppeteer.launch({headless:true})
   const page = await browser.newPage()
   await page.goto("https://www.cnnbrasil.com.br/politica/", { waitUntil: "domcontentloaded" })
-  const uri = "mongodb://localhost:27017" // padrão do mongo
-  const client = new MongoClient(uri)
-  
-
 
   try{
-    await client.connect()
-    const db = client.db("Noticias-Politica")
-    const noticiasCNN = db.collection("CNN")
-
-    for(let i = 1; i < 10; i++){
+    for(let i = 1; i < 25; i++){
         await page.evaluate(() => {
           window.scrollTo(0, document.body.scrollHeight);
         });
@@ -87,20 +74,8 @@ async function cnnScrap() {
   
           if(dict == null) continue;
           dict._id = dict.link // link é a chave primaria 
-          // console.log(dict)
+          console.log(dict)
           // console.log("\n\n")
-          
-          try {
-            await noticiasCNN.insertOne(dict)
-            console.log(`✅ Documento inserido: ${dict.manchete?.substring(0, 50)}...`)
-  
-          } catch (err) {
-            if(err.code == 11000){
-              console.error(`❌ noticia duplicada! ${dict.manchete.substring(0,50)}.`)
-            } else {
-              console.error("Erro ao inserir:", err)
-            }
-          }
         }
         await scrapingPage.close()
         await page.bringToFront()
@@ -108,7 +83,6 @@ async function cnnScrap() {
   } catch (err) {
     console.error("Erro:", err)
   } finally {
-    await client.close()
     await browser.close()
   }	
 }
