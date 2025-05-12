@@ -1,5 +1,4 @@
 const puppeteer = require('puppeteer')
-const { MongoClient } = require("mongodb")
 
 async function coletaDadosAgenBr(pagina, link) {
   await pagina.goto(link, { waitUntil: "domcontentloaded" })
@@ -42,14 +41,25 @@ async function coletaDadosAgenBr(pagina, link) {
   }, link)
 }
 
+<<<<<<< HEAD
 async function agenciabrasilScrap(){
+=======
+async function agenciaScrap() {
+>>>>>>> edba411fd669f7ac71f2bf690f2af5fce4eddbb5
   const browser = await puppeteer.launch()
   const page = await browser.newPage()
 
   try {
+<<<<<<< HEAD
     for (let pagina = 1; pagina <= 2; pagina++) {
       let agencia = `https://agenciabrasil.ebc.com.br/tags/agronegocio-0?page=${pagina}`
       await page.goto(agencia, { waitUntil: "domcontentloaded" })
+=======
+
+    for (let pagina = 1; pagina <= 10; pagina++) {
+      let g1URL = `https://agenciabrasil.ebc.com.br/politica?page=${pagina}`
+      await page.goto(g1URL, { waitUntil: "domcontentloaded" })
+>>>>>>> edba411fd669f7ac71f2bf690f2af5fce4eddbb5
 
       const links = await page.evaluate(() => {
         return Array.from(document.querySelectorAll(".capa-noticia")).map(x => x.getAttribute("href"))
@@ -70,7 +80,11 @@ async function agenciabrasilScrap(){
         if(dict == null) continue;
         dict._id = dict.link;  // link é a chave primaria 
         console.log(dict)
+<<<<<<< HEAD
         
+=======
+
+>>>>>>> edba411fd669f7ac71f2bf690f2af5fce4eddbb5
       }
       await scrapingPage.close()
       await page.bringToFront()
@@ -83,7 +97,11 @@ async function agenciabrasilScrap(){
   }
 }
 
+<<<<<<< HEAD
 agenciabrasilScrap()
 
 
 
+=======
+agenciaScrap()
+>>>>>>> edba411fd669f7ac71f2bf690f2af5fce4eddbb5
