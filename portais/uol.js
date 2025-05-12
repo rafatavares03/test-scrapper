@@ -37,10 +37,10 @@ async function coletaDadosUol(pagina, link) {
   })
 }
 
-async function uolScrap() {
+async function uolScrap(URL) {
   const browser = await puppeteer.launch()
   const page = await browser.newPage()
-  await page.goto("https://noticias.uol.com.br/politica/", { waitUntil: "domcontentloaded" })
+  await page.goto(URL, { waitUntil: "domcontentloaded" })
 
   await new Promise(resolve => setTimeout(resolve, 2222)); // a pagina tem que esquentar
 
@@ -92,3 +92,9 @@ async function uolScrap() {
 }
   
   uolScrap()
+
+function scrapUOLPolitica(){
+  uolScrap("https://noticias.uol.com.br/politica/")
+}
+
+module.exports = {scrapUOLPolitica}

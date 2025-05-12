@@ -59,14 +59,14 @@ async function coletaDadosTempo(pagina, link) {
 }
 
 
-async function tempoScrap() {
+async function tempoScrap(URL) {
   const browser = await puppeteer.launch({headless:true})
   const page = await browser.newPage()
 
   try {
 
     for (let pagina = 1; pagina <= 1; pagina++) {
-      let tempoURL = `https://www.otempo.com.br/politica/page/${pagina}`
+      let tempoURL = `${URL}${pagina}`
       await page.goto(tempoURL, { waitUntil: "domcontentloaded" })
 
         //   await new Promise(resolve => setTimeout(resolve, 4000)); // pra analisar 
@@ -105,3 +105,9 @@ async function tempoScrap() {
 }
 
 tempoScrap()
+
+function scrapTempoPolitica(){
+  tempoScrap("https://www.otempo.com.br/politica/page/")
+}
+
+module.exports = {scrapTempoPolitica}

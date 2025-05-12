@@ -52,7 +52,7 @@ async function coletaDadosAgenBr(pagina, link) {
   }, link)
 }
 
-async function start() {
+async function start(URL) {
   const browser = await puppeteer.launch()
   const page = await browser.newPage()
 
@@ -60,8 +60,8 @@ async function start() {
 
 
     for (let pagina = 1; pagina <= 1; pagina++) {
-      let g1URL = `https://agenciabrasil.ebc.com.br/politica?page=${pagina}`
-      await page.goto(g1URL, { waitUntil: "domcontentloaded" })
+      let AgenciaURL = `${URL}${pagina}`
+      await page.goto(AgenciaURL, { waitUntil: "domcontentloaded" })
 
       const links = await page.evaluate(() => {
         return Array.from(document.querySelectorAll(".capa-noticia")).map(x => x.getAttribute("href"))
@@ -95,4 +95,12 @@ async function start() {
   }
 }
 
-start()
+function scrapAgenciaPolitica(){
+  start("https://agenciabrasil.ebc.com.br/politica?page=")
+}
+
+function scrapAgenciaEconomia(){
+  start("https://agenciabrasil.ebc.com.br/economia?page=")
+}
+
+module.exports = {scrapAgenciaEconomia, scrapAgenciaPolitica}

@@ -46,15 +46,15 @@ async function coletaDadosCongressoEmFoco(pagina, link) {
   })
 }
 
-async function congressoEmFocoScrap() {
+async function congressoEmFocoScrap(URL) {
   const browser = await puppeteer.launch()
   const page = await browser.newPage()
 
   try {
 
     for (let pagina = 1; pagina <= 1; pagina++) {
-      let tempoURL = `https://www.congressoemfoco.com.br/noticia?pagina=${pagina}`
-      await page.goto(tempoURL, { waitUntil: "domcontentloaded" })
+      let congressoURL = `${URL}${pagina}`
+      await page.goto(congressoURL, { waitUntil: "domcontentloaded" })
 
       const links = await page.evaluate(() => {
         return Array.from(document.querySelectorAll("p.asset__title a")).map(x => x.getAttribute("href"))
@@ -88,3 +88,10 @@ async function congressoEmFocoScrap() {
 }
 
 congressoEmFocoScrap()
+
+
+function scrapCongressoPolitica(){
+  congressoEmFocoScrap("https://www.congressoemfoco.com.br/noticia?pagina=")
+}
+
+module.exports = {scrapCongressoPolitica}

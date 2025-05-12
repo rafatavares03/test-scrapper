@@ -48,10 +48,10 @@ async function coletaDadosForum(pagina, link) {
 
 
 
-async function forumScrap() {
+async function forumScrap(URL) {
   const browser = await puppeteer.launch({headless:true})
   const page = await browser.newPage()
-  await page.goto("https://revistaforum.com.br/politica/", { waitUntil: "domcontentloaded" })
+  await page.goto(URL, { waitUntil: "domcontentloaded" })
 
   try{
 
@@ -112,3 +112,10 @@ async function forumScrap() {
     
 }
 forumScrap()
+
+
+function scrapForumPolitica(){
+  forumScrap("https://revistaforum.com.br/politica/")
+}
+
+module.exports = {scrapForumPolitica}

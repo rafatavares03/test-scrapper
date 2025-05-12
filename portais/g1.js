@@ -42,14 +42,14 @@ async function coletaDadosG1(pagina, link) {
   })
 }
 
-async function scrapG1() {
+async function scrapG1(URL) {
   const browser = await puppeteer.launch()
   const paginaPortal = await browser.newPage()
   const paginaScraping = await browser.newPage()
 
   try {
     for (let pagina = 1; pagina <= 1; pagina++) {
-      let g1URL = `https://g1.globo.com/economia/agronegocios/index/feed/pagina-${pagina}.ghtml`
+      let g1URL = `${URL}${pagina}.ghtml`
       await paginaPortal.bringToFront()
       await paginaPortal.goto(g1URL, { waitUntil: "domcontentloaded" })
 
@@ -72,5 +72,14 @@ async function scrapG1() {
     await browser.close()
   }
 }
+// politica
+function scrapG1Politica(){
+  scrapG1("https://g1.globo.com/politica/index/feed/pagina-")
+}
 
-scrapG1()
+// economia
+function scrapG1Economia(){
+  scrapG1("https://g1.globo.com/economia/index/feed/pagina-")
+}
+
+module.exports = {scrapG1Economia, scrapG1Politica}
