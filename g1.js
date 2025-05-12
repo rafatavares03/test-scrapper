@@ -3,18 +3,25 @@ const puppeteer = require('puppeteer')
 async function coletaDadosG1(pagina, link) {
   await pagina.goto(link, { waitUntil: "domcontentloaded" })
   return await pagina.evaluate(() => {
-    const dados = {}
+    const dados = {
+      portal: "g1",
+      link: window.location.href
+    }
+    // Manchete
     let manchete = document.querySelector("h1.content-head__title")
+    if(manchete) dados.manchete = manchete.textContent
+    else return null
+    // Lide
     let lide = document.querySelector("h2.content-head__subtitle")
+    if(lide) dados.lide = lide.textContent
+    // Data
     let dataPublicacao = document.querySelector('time[itemprop="dateModified"]')
+    if(dataPublicacao) dados.dataPublicacao = dataPublicacao.getAttribute("datetime")
+    // Autores
     let autoresTag = document.querySelector("p.top__signature__text__author-name")
     if(autoresTag == null) {
       autoresTag = document.querySelector("p.content-publication-data__from")
     }
-    if(manchete) dados.manchete = manchete.textContent
-    else return null
-    if(lide) dados.lide = lide.textContent
-    if(dataPublicacao) dados.dataPublicacao = dataPublicacao.getAttribute("datetime")
     if(autoresTag) {
       let autores = autoresTag.textContent
       autores = autores.replace("Por", '')
@@ -27,37 +34,33 @@ async function coletaDadosG1(pagina, link) {
       }
       dados.autores = autores.map(x => x.trim())
     }
-    dados.portal = "g1"
-    dados.link = window.location.href
     return dados
   })
 }
 
 async function scrapG1() {
   const browser = await puppeteer.launch()
-  const page = await browser.newPage()
+  const paginaPortal = await browser.newPage()
+  const paginaScraping = await browser.newPage()
 
   try {
     for (let pagina = 1; pagina <= 2; pagina++) {
       let g1URL = `https://g1.globo.com/economia/agronegocios/index/feed/pagina-${pagina}.ghtml`
-      await page.goto(g1URL, { waitUntil: "domcontentloaded" })
+      await paginaPortal.bringToFront()
+      await paginaPortal.goto(g1URL, { waitUntil: "domcontentloaded" })
 
-      let links= await page.evaluate(() => {
+      let links = await paginaPortal.evaluate(() => {
         return Array.from(document.querySelectorAll(".feed-post-link")).map(x => x.getAttribute("href"))
       })
       
-      let scrapingPage = await browser.newPage()
-      await scrapingPage.bringToFront()
+      await paginaScraping.bringToFront()
       for (let i = 0; i < links.length; i++) {
-        let dict = await coletaDadosG1(scrapingPage, links[i])
-
+        let dict = await coletaDadosG1(paginaScraping, links[i])
         if(dict == null) continue;
         console.log(dict)
-  
       }
-      await scrapingPage.close()
-      await page.bringToFront()
     }
+    await paginaScraping.close()
 
   } catch (err) {
     console.error("Erro:", err)
