@@ -51,7 +51,7 @@ async function coletaDadosCNN(pagina, link) {
   }, link)
 }
 
-async function cnnScrap(URL, tipo) {
+async function scrapCNN(URL, tipo) {
   const browser = await puppeteer.launch({headless:true})
   const page = await browser.newPage()
   await page.goto(`${URL}`, { waitUntil: "domcontentloaded" })
@@ -106,16 +106,12 @@ async function cnnScrap(URL, tipo) {
   }	
 }
 
-function scrapCNNPolitica(){
-  cnnScrap("https://www.cnnbrasil.com.br/politica/", "Politica")
+async function scrapingCNN(){
+  await scrapCNN("https://www.cnnbrasil.com.br/politica/", "Politica")
+  await scrapCNN("https://www.cnnbrasil.com.br/economia/", "Economia")
 }
 
-function scrapCNNEconomia(){
-  cnnScrap("https://www.cnnbrasil.com.br/economia/", "Economia")
-
-}
-
-module.exports = {scrapCNNPolitica, scrapCNNEconomia}
+module.exports = {scrapingCNN}
 
 
 

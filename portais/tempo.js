@@ -60,7 +60,7 @@ async function coletaDadosTempo(pagina, link) {
 }
 
 
-async function tempoScrap(URL) {
+async function scrapTempo(URL) {
   const browser = await puppeteer.launch({headless:true})
   const page = await browser.newPage()
 
@@ -108,9 +108,8 @@ async function tempoScrap(URL) {
   }
 }
 
-
-function scrapTempoPolitica(){
-  tempoScrap("https://www.otempo.com.br/politica/page/", "Politica")
+async function scrapingTempo(){
+  await scrapTempo("https://www.otempo.com.br/politica/page/", "Politica")
 }
 
-module.exports = {scrapTempoPolitica}
+module.exports = {scrapingTempo}

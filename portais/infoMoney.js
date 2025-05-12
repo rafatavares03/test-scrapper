@@ -1,7 +1,7 @@
 const puppeteer = require('puppeteer')
 const fs = require('fs')
 
-async function coletaInfo(pagina, link) {
+async function coletaInfoMoney(pagina, link) {
   await pagina.goto(link, { waitUntil: "domcontentloaded"})
   return await pagina.evaluate((link) => {
     const dados = {}
@@ -35,7 +35,7 @@ async function coletaInfo(pagina, link) {
   }, link)
 }
 
-async function infoMoneyscrap(URL, tipo) {
+async function scrapInfoMoney(URL, tipo) {
   const browser = await puppeteer.launch({headless:true})
   const page = await browser.newPage()
   await page.goto(`${URL}`, { waitUntil: "domcontentloaded" })
@@ -74,7 +74,7 @@ async function infoMoneyscrap(URL, tipo) {
         let scrapingPage = await browser.newPage()
         await scrapingPage.bringToFront()
         for (let i = 0; i < links.length; i++) {
-          let dict = await coletaInfo(scrapingPage, links[i])
+          let dict = await coletaInfoMoney(scrapingPage, links[i])
   
           if(dict == null) continue;
           dict._id = dict.link // link é a chave primaria 
@@ -94,16 +94,11 @@ async function infoMoneyscrap(URL, tipo) {
   }	
 }
 
-function scrapCNNPolitica(){
-    infoMoneyscrap("https://www.cnnbrasil.com.br/politica/", "Politica")
+async function scrapingInfoMoney(){
+  await scrapInfoMoney("https://www.infomoney.com.br/economia/")
 }
 
-infoMoneyscrap("https://www.infomoney.com.br/economia/", "Economia")
-function scrapCNNEconomia(){
-
-}
-
-module.exports = {scrapCNNPolitica, scrapCNNEconomia}
+module.exports = {scrapingInfoMoney}
 
 
 

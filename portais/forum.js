@@ -48,7 +48,7 @@ async function coletaDadosForum(pagina, link) {
 
 
 
-async function forumScrap(URL, tipo) {
+async function scrapForum(URL, tipo) {
   const browser = await puppeteer.launch({headless:true})
   const page = await browser.newPage()
   await page.goto(`${URL}`, { waitUntil: "domcontentloaded" })
@@ -116,13 +116,9 @@ const arquivo = fs.createWriteStream(`./portais_jsons/Forum-${tipo}.jsonl`, { fl
     
 }
 
-
-function scrapForumPolitica(){
-  forumScrap("https://revistaforum.com.br/politica/", "Politica")
+async function scrapingForum(){
+  await scrapForum("https://revistaforum.com.br/politica/", "Politica")
+  await scrapForum("https://revistaforum.com.br/economia/", "Economia")
 }
 
-function scrapForumEconomia(){
-  forumScrap("https://revistaforum.com.br/economia/", "Economia")
-}
-
-module.exports = {scrapForumPolitica, scrapForumEconomia}
+module.exports = {scrapingForum}

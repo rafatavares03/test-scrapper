@@ -52,7 +52,7 @@ async function coletaDadosCartaCapital(pagina, link) {
 }
 
 
-async function cartaCapitalScraping(URL, tipo) {
+async function scrapCartaCapital(URL, tipo) {
   const browser = await puppeteer.launch({headless: true})
   const page = await browser.newPage()
   
@@ -92,13 +92,9 @@ async function cartaCapitalScraping(URL, tipo) {
   }
 }
 
-
-function scrapCartaPolitica(){
-  cartaCapitalScraping("https://www.cartacapital.com.br/politica/page/", "Politica")
+async function scrapingCartaCapital(){
+  await scrapCartaCapital("https://www.cartacapital.com.br/politica/page/", "Politica")
+  await scrapCartaCapital("https://www.cartacapital.com.br/economia/", "Economia")
 }
 
-function scrapCartaEconomia(){
-  cartaCapitalScraping("https://www.cartacapital.com.br/economia/", "Economia")
-}
-
-module.exports = {scrapCartaPolitica, scrapCartaEconomia}
+module.exports = {scrapingCartaCapital}

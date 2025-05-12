@@ -47,7 +47,7 @@ async function coletaDadosCongressoEmFoco(pagina, link) {
   })
 }
 
-async function congressoEmFocoScrap(URL, tipo) {
+async function scrapCongressoEmFoco(URL, tipo) {
   const browser = await puppeteer.launch()
   const page = await browser.newPage()
   
@@ -91,10 +91,8 @@ async function congressoEmFocoScrap(URL, tipo) {
   }
 }
 
-
-
-function scrapCongressoPolitica(){
-  congressoEmFocoScrap("https://www.congressoemfoco.com.br/noticia?pagina=", "Politica")
+async function scrapingCongressoEmFoco(){
+  await scrapCongressoEmFoco("https://www.congressoemfoco.com.br/noticia?pagina=", "Politica")
 }
 
-module.exports = {scrapCongressoPolitica}
+module.exports = {scrapingCongressoEmFoco}

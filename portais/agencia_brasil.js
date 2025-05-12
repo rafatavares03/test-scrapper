@@ -53,7 +53,7 @@ async function coletaDadosAgenBr(pagina, link) {
   }, link)
 }
 
-async function start(URL, tipo) {
+async function scrapAgenciaBrasil(URL, tipo) {
   const browser = await puppeteer.launch()
   const page = await browser.newPage()
 
@@ -98,12 +98,9 @@ async function start(URL, tipo) {
   }
 }
 
-function scrapAgenciaPolitica(){
-  start("https://agenciabrasil.ebc.com.br/politica?page=", "Politica")
+async function scrapingAgenciaBrasil(){
+  await scrapAgenciaBrasil("https://agenciabrasil.ebc.com.br/politica?page=", "Politica")
+  await scrapAgenciaBrasil("https://agenciabrasil.ebc.com.br/economia?page=", "Economia")
 }
 
-function scrapAgenciaEconomia(){
-  start("https://agenciabrasil.ebc.com.br/economia?page=", "Economia")
-}
-
-module.exports = {scrapAgenciaEconomia, scrapAgenciaPolitica}
+module.exports = {scrapingAgenciaBrasil}

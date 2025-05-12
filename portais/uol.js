@@ -38,7 +38,7 @@ async function coletaDadosUol(pagina, link) {
   })
 }
 
-async function uolScrap(URL, tipo) {
+async function scrapUol(URL, tipo) {
   const browser = await puppeteer.launch()
   const page = await browser.newPage()
   await page.goto(`${URL}`, { waitUntil: "domcontentloaded" })
@@ -65,7 +65,7 @@ async function uolScrap(URL, tipo) {
       for (let i = 0; i < links.length; i++) {
         let noticia = await coletaDadosUol(scrapingPage, links[i])
         // console.log(noticia)
-        arquivo.write(JSON.stringify(dict) + '\n')
+        arquivo.write(JSON.stringify(noticia) + '\n')
       }
       await scrapingPage.close()
       await page.bringToFront()
@@ -94,15 +94,11 @@ async function uolScrap(URL, tipo) {
     await browser.close()
   }
 }
-  
 
-function scrapUOLPolitica(){
-  uolScrap("https://noticias.uol.com.br/politica/", "Politica")
-}
-
-function scrapUOLEconomia(){
-  uolScrap("https://economia.uol.com.br/ultimas/", "Economia")
+async function scrapingUol(){
+  await scrapUol("https://noticias.uol.com.br/politica/", "Politica")
+  await scrapUol("https://economia.uol.com.br/ultimas/", "Economia")
 }
 
 
-module.exports = {scrapUOLPolitica, scrapUOLEconomia}
+module.exports = {scrapingUol}

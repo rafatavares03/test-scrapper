@@ -78,14 +78,10 @@ async function scrapG1(URL, tipo) {
     await browser.close()
   }
 }
-// politica
-function scrapG1Politica(){
-  scrapG1(`https://g1.globo.com/politica/index/feed/pagina-`, "politica")
+
+async function scrappingG1(){
+  await scrapG1(`https://g1.globo.com/politica/index/feed/pagina-`, "politica")
+  await scrapG1("https://g1.globo.com/economia/index/feed/pagina-", "economia")
 }
 
-// economia
-function scrapG1Economia(){
-  scrapG1("https://g1.globo.com/economia/index/feed/pagina-", "economia")
-}
-
-module.exports = {scrapG1Economia, scrapG1Politica}
+module.exports = {scrappingG1}

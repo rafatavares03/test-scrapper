@@ -62,7 +62,7 @@ async function coletaDadosCamaraDep(pagina, link) {
   })
 }
 
-async function camaraDepScrap(URL, tipo) {
+async function scrapCamaraDeputados(URL, tipo) {
   const browser = await puppeteer.launch()
   const page = await browser.newPage()
 
@@ -100,10 +100,9 @@ async function camaraDepScrap(URL, tipo) {
   }
 }
 
-
-function scrapCamaraPolitica(){
-  camaraDepScrap("https://www.camara.leg.br/noticias/ultimas?pagina=", "Politica")
+async function scrapingCamaraDeputados(){
+  await scrapCamaraDeputados("https://www.camara.leg.br/noticias/ultimas?pagina=", "Politica")
 }
 
-module.exports = {scrapCamaraPolitica}
+module.exports = {scrapingCamaraDeputados}
 
