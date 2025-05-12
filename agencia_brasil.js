@@ -1,5 +1,4 @@
 const puppeteer = require('puppeteer')
-const { MongoClient } = require("mongodb")
 
 async function coletaDadosAgenBr(pagina, link) {
   await pagina.goto(link, { waitUntil: "domcontentloaded" })
@@ -38,16 +37,16 @@ async function coletaDadosAgenBr(pagina, link) {
         dados.autores = autores.map(x => x.trim()).filter(a => a.length > 0)
     }
 
-    // Artigo
-    let texto = "";
-    let pontoDePartida = document.querySelector('div.conteudo-noticia')
-    let elementos = pontoDePartida.parentElement.querySelectorAll("p,h2") 
-    for (let elemento of elementos) {
-      texto += elemento.textContent.trim() + "\n"
-    }
-    dados.artigo = texto.trim();
+    // // Artigo
+    // let texto = "";
+    // let pontoDePartida = document.querySelector('div.conteudo-noticia')
+    // let elementos = pontoDePartida.parentElement.querySelectorAll("p,h2") 
+    // for (let elemento of elementos) {
+    //   texto += elemento.textContent.trim() + "\n"
+    // }
+    // dados.artigo = texto.trim();
 
-    if(dados.artigo.length > 0) dados.artigo = dados.artigo.replaceAll(/\\n/g, '\n')
+    // if(dados.artigo.length > 0) dados.artigo = dados.artigo.replaceAll(/\\n/g, '\n')
 
     return dados
   }, link)
@@ -56,14 +55,9 @@ async function coletaDadosAgenBr(pagina, link) {
 async function start() {
   const browser = await puppeteer.launch()
   const page = await browser.newPage()
-  const uri = "mongodb://localhost:27017" // padrão do mongo
-  const client = new MongoClient(uri)
 
   try {
-    await client.connect()
-    const db = client.db("Noticias-Politica")
-    const noticiasAgenBra = db.collection("Agencia_Brasil")
-    // await noticiasAgenBra.deleteMany({})
+
 
     for (let pagina = 1; pagina <= 10; pagina++) {
       let g1URL = `https://agenciabrasil.ebc.com.br/politica?page=${pagina}`
@@ -88,18 +82,7 @@ async function start() {
         if(dict == null) continue;
         dict._id = dict.link;  // link é a chave primaria 
         // console.log(dict.autores)
-        
-        try {
-          await noticiasAgenBra.insertOne(dict)
-          console.log(`✅ Documento inserido: ${dict.manchete?.substring(0, 50)}...`)
 
-        } catch (err) {
-          if(err.code == 11000){
-            console.error(`❌ noticia duplicada! ${dict.manchete.substring(0,50)}.`)
-          } else {
-            console.error("Erro ao inserir:", err)
-          }
-        }
       }
       await scrapingPage.close()
       await page.bringToFront()
@@ -108,7 +91,6 @@ async function start() {
   } catch (err) {
     console.error("Erro:", err)
   } finally {
-    await client.close()
     await browser.close()
   }
 }

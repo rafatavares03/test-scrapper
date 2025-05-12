@@ -1,5 +1,5 @@
 const puppeteer = require('puppeteer')
-const { MongoClient } = require("mongodb")
+
 
 async function coletaDadosCNN(pagina, link) {
   await pagina.goto(link, { waitUntil: "domcontentloaded"})
@@ -7,21 +7,18 @@ async function coletaDadosCNN(pagina, link) {
     const dados = {}
     dados.portal = "CNN"
     dados.link = link
-    let manchete = document.querySelector("h1.single-header__title")
-    let lide = document.querySelector("p.single-header__excerpt")
-    let dataPublicacao = document.querySelector("time.single-header__time")
-    let autores = document.querySelector("a.blogger__name")
-    if(autores == null) {
-      autores = Array.from(document.querySelectorAll("span.author__group a")).map(x => x.textContent)
-    } else {
-      autores = new Array(autores.textContent)
-    }
-    let artigo = Array.from(document.querySelectorAll("div.single-content p")).map(x => x.textContent)
-    artigo = artigo.filter(x => x.trim().length > 0) // remove parágrafos vazios
 
+    // Manchete
+    let manchete = document.querySelector("h1.single-header__title")
     if(manchete) dados.manchete = manchete.textContent
     else return null
+
+    // Lide
+    let lide = document.querySelector("p.single-header__excerpt")
     if(lide) dados.lide = lide.textContent
+
+    // Data
+    let dataPublicacao = document.querySelector("time.single-header__time")
     if(dataPublicacao) {
       dataTexto = dataPublicacao.textContent
       if(dataTexto.indexOf("|") >= 0) dataTexto = dataTexto.slice(0, dataTexto.indexOf("|"))
@@ -34,11 +31,21 @@ async function coletaDadosCNN(pagina, link) {
       dataFormatada = dataFormatada.replace(/\s/g, '')
       dados.dataPublicacao = dataFormatada
     }
+
+    // Autores
+    let autores = document.querySelector("a.blogger__name")
+    if(autores == null) {
+      autores = Array.from(document.querySelectorAll("span.author__group a")).map(x => x.textContent)
+    } else {
+      autores = new Array(autores.textContent)
+    }
     dados.autores = autores
 
-    if(artigo && (artigo.length > 0)) dados.artigo = artigo
-
-    if(dados.artigo.length > 0) dados.artigo = dados.artigo.map(x => x.replaceAll(/\\n/g, '\n'))
+    // // Artigo
+    // let artigo = Array.from(document.querySelectorAll("div.single-content p")).map(x => x.textContent)
+    // artigo = artigo.filter(x => x.trim().length > 0) // remove parágrafos vazios
+    // if(artigo && (artigo.length > 0)) dados.artigo = artigo
+    // if(dados.artigo.length > 0) dados.artigo = dados.artigo.map(x => x.replaceAll(/\\n/g, '\n'))
 
     return dados
   }, link)
@@ -48,15 +55,8 @@ async function cnnScrap() {
   const browser = await puppeteer.launch({headless:false})
   const page = await browser.newPage()
   await page.goto("https://www.cnnbrasil.com.br/politica/", { waitUntil: "domcontentloaded" })
-  const uri = "mongodb://localhost:27017" // padrão do mongo
-  const client = new MongoClient(uri)
-  
-
 
   try{
-    await client.connect()
-    const db = client.db("Noticias-Politica")
-    const noticiasCNN = db.collection("CNN")
 
     for(let i = 1; i < 10; i++){
         await page.evaluate(() => {
@@ -91,17 +91,6 @@ async function cnnScrap() {
           // console.log(dict)
           // console.log("\n\n")
           
-          try {
-            await noticiasCNN.insertOne(dict)
-            console.log(`✅ Documento inserido: ${dict.manchete?.substring(0, 50)}...`)
-  
-          } catch (err) {
-            if(err.code == 11000){
-              console.error(`❌ noticia duplicada! ${dict.manchete.substring(0,50)}.`)
-            } else {
-              console.error("Erro ao inserir:", err)
-            }
-          }
         }
         await scrapingPage.close()
         await page.bringToFront()
@@ -109,7 +98,6 @@ async function cnnScrap() {
   } catch (err) {
     console.error("Erro:", err)
   } finally {
-    await client.close()
     await browser.close()
   }	
 }

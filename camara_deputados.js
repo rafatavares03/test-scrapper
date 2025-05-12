@@ -4,22 +4,23 @@ async function coletaDadosCamaraDep(pagina, link) {
   await pagina.goto(link)
   return pagina.evaluate(() => {
     let dados = {}
+    dados.portal = "Portal da Câmara dos Deputados"
+    dados.link = window.location.href
+
+    // Manchete
     let manchete = document.querySelector("h1.g-artigo__titulo")
-    let lide = document.querySelector("p.g-artigo__descricao")
-    let dataPublicacao = document.querySelector("p.g-artigo__data-hora")
-    let autores = document.querySelector("div.js-article-read-more p[style='font-size: 0.8rem; font-weight: 700;']")
-    let artigo = Array.from(document.querySelectorAll("div.js-article-read-more p")).filter(x => x.hasAttribute("class") == false && x.hasAttribute("style") == false)
-    artigo = artigo.map(x => {
-      let text = x.innerText.trim()
-      text = text.replaceAll(/\n/g, ': ')
-      return text
-    })
     if(manchete) {
       dados.manchete = manchete.textContent
     } else {
       return null
     }
+
+    // Lide
+    let lide = document.querySelector("p.g-artigo__descricao")
     if(lide) dados.lide = lide.textContent
+
+    // Data
+    let dataPublicacao = document.querySelector("p.g-artigo__data-hora")
     if(dataPublicacao) {
       dataPublicacao = dataPublicacao.textContent.trim()
       if(dataPublicacao.indexOf("•") >= 0) {
@@ -34,6 +35,9 @@ async function coletaDadosCamaraDep(pagina, link) {
       let dataFormatada = `${dia}T${hora}-03:00`
       dados.dataPublicacao = dataFormatada
     }
+
+    // Autores
+    let autores = document.querySelector("div.js-article-read-more p[style='font-size: 0.8rem; font-weight: 700;']")
     if(autores) {
       autores = autores.innerHTML
       autores = autores.split("<br>")
@@ -42,26 +46,26 @@ async function coletaDadosCamaraDep(pagina, link) {
       })
       dados.autores = autores
     }
-    dados.portal = "Portal da Câmara dos Deputados"
-    dados.link = window.location.href
-    if(artigo) dados.artigo = artigo.filter(x => x.length > 0)
-    if(dados.artigo.length > 0) dados.artigo = dados.artigo.replaceAll(/\\n/g, '\n')
+
+    // // Artigo
+    // let artigo = Array.from(document.querySelectorAll("div.js-article-read-more p")).filter(x => x.hasAttribute("class") == false && x.hasAttribute("style") == false)
+    // artigo = artigo.map(x => {
+    //   let text = x.innerText.trim()
+    //   text = text.replaceAll(/\n/g, ': ')
+    //   return text
+    // })
+    // if(artigo) dados.artigo = artigo.filter(x => x.length > 0)
+    // if(dados.artigo.length > 0) dados.artigo = dados.artigo.replaceAll(/\\n/g, '\n')
+
     return dados
-  
   })
 }
 
 async function camaraDepScrap() {
   const browser = await puppeteer.launch()
   const page = await browser.newPage()
-  const uri = "mongodb://localhost:27017" // padrão do mongo
-  const client = new MongoClient(uri)
 
   try {
-    await client.connect()
-    const db = client.db("Noticias-Politica")
-    const noticiasCamara = db.collection("Camara_dos_Deputados")
-
     for (let pagina = 1; pagina <= 1; pagina++) {
       let tempoURL = `https://www.camara.leg.br/noticias/ultimas?pagina=${pagina}`
       await page.goto(tempoURL, { waitUntil: "domcontentloaded" })
@@ -78,18 +82,6 @@ async function camaraDepScrap() {
         if(dict == null) continue;
         dict._id = dict.link;  // link é a chave primaria 
         console.log(dict)
-        
-        try {
-          await noticiasCamara.insertOne(dict)
-          console.log(`✅ Documento inserido: ${dict.manchete?.substring(0, 50)}...`)
-
-        } catch (err) {
-          if(err.code == 11000){
-            console.error(`❌ noticia duplicada! ${dict.manchete.substring(0,50)}.`)
-          } else {
-            console.error("Erro ao inserir:", err)
-          }
-        }
       }
       await scrapingPage.close()
       await page.bringToFront()
@@ -98,7 +90,6 @@ async function camaraDepScrap() {
   } catch (err) {
     console.error("Erro:", err)
   } finally {
-    await client.close()
     await browser.close()
   }
 }

@@ -7,16 +7,20 @@ async function coletaDadosG1(pagina, link) {
       portal: "g1",
       link: window.location.href
     }
+    
     // Manchete
     let manchete = document.querySelector("h1.content-head__title")
     if(manchete) dados.manchete = manchete.textContent
     else return null
+    
     // Lide
     let lide = document.querySelector("h2.content-head__subtitle")
     if(lide) dados.lide = lide.textContent
+    
     // Data
     let dataPublicacao = document.querySelector('time[itemprop="dateModified"]')
     if(dataPublicacao) dados.dataPublicacao = dataPublicacao.getAttribute("datetime")
+      
     // Autores
     let autoresTag = document.querySelector("p.top__signature__text__author-name")
     if(autoresTag == null) {
