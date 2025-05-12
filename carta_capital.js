@@ -4,28 +4,23 @@ const { MongoClient } = require("mongodb")
 
 async function coletaDadosCartaCapital(pagina, link) {
   await pagina.goto(link)
-  return pagina.evaluate((link) => {
-        const dados = {
-      portal: "Carta Capital",
-      link: link,
-    }
+  return pagina.evaluate(() => {
+    let dados = {}
     let manchete = document.querySelector("section.s-content__heading h1")
-    let lide = Array.from(document.querySelector("button[data-excerpt]").dataset.excerpt)
-
+    let lide = Array.from(document.querySelectorAll("section.s-content__heading p")).map(x => x.textContent)
     let dataPublicacao = document.querySelector("div.s-content__infos span span")
     let autores = Array.from(document.querySelectorAll("div.s-content__infos strong")).map(x => x.textContent.trim())
-
+    let artigo = Array.from(document.querySelectorAll(".s-content__text .content-closed p")).map(x => x.innerText.trim())
+    artigo = artigo.filter(x => x.length > 0)
     if(manchete) {
       dados.manchete = manchete.textContent
     } else {
       return null
     }
-
     if(lide.length > 0) {
-      // lide.textContent
+      lide = lide.filter(x => x.length > 0)
       dados.lide = lide[0]
     } 
-
     if(dataPublicacao) {
       dataPublicacao = dataPublicacao.textContent.trim()
       dataPublicacao = dataPublicacao.split(" ")
@@ -37,20 +32,30 @@ async function coletaDadosCartaCapital(pagina, link) {
       dados.dataPublicacao = dataFormatada
     }
     dados.autores = autores
+    dados.portal = "Carta Capital"
+    dados.link = window.location.href
+    if(artigo.length > 0) {
+      dados.artigo = artigo.map(x => x.replaceAll(/\\n/g, '\n'))
+    }
 
     return dados
-  }, link)
+  })
 }
 
 
 async function cartaCapitalScraping() {
-  const browser = await puppeteer.launch({headless: true})
+  const browser = await puppeteer.launch({headless: false})
   const page = await browser.newPage()
+  const uri = "mongodb://localhost:27017" // padrão do mongo
+  const client = new MongoClient(uri)
 
   try {
+    await client.connect()
+    const db = client.db("Noticias-Politica")
+    const noticiasCartaCap = db.collection("Carta_Capital")
 
-    for (let pagina = 1; pagina < 3; pagina++) {
-      let cartaCapitalURL = `https://www.cartacapital.com.br/tag/agronegocio/page/${pagina}/`
+    for (let pagina = 1; pagina <= 10; pagina++) {
+      let cartaCapitalURL = `https://www.cartacapital.com.br/politica/page/${pagina}/`
       await page.goto(cartaCapitalURL, { waitUntil: "domcontentloaded" })
 
       const links = await page.evaluate(() => {
@@ -66,6 +71,17 @@ async function cartaCapitalScraping() {
         dict._id = dict.link;  // link é a chave primaria 
         console.log(dict)
         
+        try {
+          await noticiasCartaCap.insertOne(dict)
+          console.log(`✅ Documento inserido: ${dict.manchete?.substring(0, 50)}...`)
+
+        } catch (err) {
+          if(err.code == 11000){
+            console.error(`❌ noticia duplicada! ${dict.manchete.substring(0,50)}.`)
+          } else {
+            console.error("Erro ao inserir:", err)
+          }
+        }
       }
       await scrapingPage.close()
       await page.bringToFront()
@@ -74,6 +90,7 @@ async function cartaCapitalScraping() {
   } catch (err) {
     console.error("Erro:", err)
   } finally {
+    await client.close()
     await browser.close()
   }
 }

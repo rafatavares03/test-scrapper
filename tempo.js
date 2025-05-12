@@ -1,4 +1,5 @@
 const puppeteer = require('puppeteer')
+const { MongoClient } = require("mongodb")
 
 async function coletaDadosTempo(pagina, link) {
   await pagina.goto(link, { waitUntil: "domcontentloaded" })
@@ -43,6 +44,17 @@ async function coletaDadosTempo(pagina, link) {
       let arra = autores.split(/[,\/]/).map(a => a.trim()).filter(a => a.length > 0);
       dados.autores = arra
     }
+    
+    // Artigo
+
+    let texto = "";
+    let pontoDePartida = document.querySelector('section.read-controller');
+    let elementos = pontoDePartida.parentElement.querySelectorAll("#bodyArticle p, #bodyArticle.h2"); // deixa .h2 que funciona. o motivo n sei, mas funciona. n mexe, pelo amor
+    for (let elemento of elementos) {
+      texto += elemento.textContent.trim() + "\n"
+    }
+    dados.artigo = texto.trim();
+    if(dados.artigo.length > 0) dados.artigo = dados.artigo.replaceAll(/\\n/g, '\n')
 
     return dados
   }, link)
@@ -52,9 +64,15 @@ async function coletaDadosTempo(pagina, link) {
 async function tempoScrap() {
   const browser = await puppeteer.launch({headless:true})
   const page = await browser.newPage()
+  const uri = "mongodb://localhost:27017" // padrão do mongo
+  const client = new MongoClient(uri)
 
   try {
-    for (let pagina = 1; pagina <= 2; pagina++) {
+    await client.connect()
+    const db = client.db("Noticias-Politica")
+    const noticiasTempo = db.collection("O_Tempo")
+
+    for (let pagina = 1; pagina <= 1; pagina++) {
       let tempoURL = `https://www.otempo.com.br/politica/page/${pagina}`
       await page.goto(tempoURL, { waitUntil: "domcontentloaded" })
 
@@ -81,6 +99,17 @@ async function tempoScrap() {
         console.log(dict)
         console.log("\n\n")
         
+        try {
+          await noticiasTempo.insertOne(dict)
+          console.log(`✅ Documento inserido: ${dict.manchete?.substring(0, 50)}...`)
+
+        } catch (err) {
+          if(err.code == 11000){
+            console.error(`❌ noticia duplicada! ${dict.manchete.substring(0,50)}.`)
+          } else {
+            console.error("Erro ao inserir:", err)
+          }
+        }
       }
       await scrapingPage.close()
       await page.bringToFront()
@@ -89,6 +118,7 @@ async function tempoScrap() {
   } catch (err) {
     console.error("Erro:", err)
   } finally {
+    await client.close()
     await browser.close()
   }
 }

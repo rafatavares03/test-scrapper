@@ -3,11 +3,8 @@ const fs = require('fs')
 
 async function coletaDadosUol(pagina, link) {
   await pagina.goto(link, {waitUntil: "domcontentloaded"})
-  return pagina.evaluate((link) => {
+  return pagina.evaluate(() => {
     let dados = {}
-
-    dados.portal = "Uol"
-    dados.link = link
 
     // Manchete
     let manchete = document.querySelector("h1.title")
@@ -29,26 +26,33 @@ async function coletaDadosUol(pagina, link) {
 
     // Autores
     let autores = Array.from(document.querySelectorAll(".solar-author-name")).map(x => x.innerText)
+
+    // Artigo
+    let artigo = Array.from(document.querySelectorAll("div.jupiter-paragraph-fragment p")).map(x => x.innerText)
     if(autores.length > 0) dados.autores = autores
+    dados.portal = "Uol"
+    dados.link = window.location.href
+    if(artigo.length > 0) dados.artigo = artigo.map(x => x.replaceAll(/\\n/g, '\n'))
 
     return dados
-  }, link)
+  })
 }
 
 async function uolScrap() {
   const browser = await puppeteer.launch()
   const page = await browser.newPage()
-  await page.goto("https://economia.uol.com.br/agronegocio/ultimas/", { waitUntil: "domcontentloaded" })
+  await page.goto("https://noticias.uol.com.br/politica/", { waitUntil: "domcontentloaded" })
 
-  try{
-    for(let i = 1; i <= 2; i++){
-      await page.evaluate(() => {
+  await new Promise(resolve => setTimeout(resolve, 2222)); // a pagina tem que esquentar
+
+  for(let i = 1; i <= 1; i++){
+        await page.evaluate(() => {
           window.scrollTo(0, document.body.scrollHeight);
         });
         
         let links = await page.evaluate(() => {
             return Array.from(document.querySelectorAll("div.thumbnails-wrapper a")).map(el => el.getAttribute("href"))
-          })
+        })
         let scrapingPage = await browser.newPage()
         await scrapingPage.bringToFront()
         // Imprime os links
@@ -64,20 +68,25 @@ async function uolScrap() {
         });
         
         try {
-          let clickResult = await page.locator('button.ver-mais').click({count: 2 ,delay: 1000})
-          console.log(clickResult)
+            let clickResult = await page.locator('button.ver-mais').click({count: 2 ,delay: 1000})
+            console.log(clickResult)
         } catch (e) {
             console.log("Não foi possível carregar novos conteúdos")
             console.log(e)
             await browser.close()
             return null
-          }   
-    }
-  } catch (err) {
-    console.error("Erro:", err)
-  } finally {
-    await browser.close()
+        }   
+        
+        // uol demora pra carregar, ent tem que ter isso
+
+
+            // aqui
+
   }
+    
+    // await new Promise(resolve => setTimeout(resolve, 4000)); // pra analisar 
+    
+  await browser.close()
 }
 
 uolScrap()

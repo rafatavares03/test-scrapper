@@ -31,7 +31,16 @@ async function coletaDadosForum(pagina, link) {
       let arra = autores.split(/[,\/]/).map(a => a.trim()).filter(a => a.length > 0);
       dados.autores = arra
     }
+    // Texto
+    let texto = "";
+    let pontoDePartida = document.querySelector('div.article-content--cuerpo')
+    let elementos = pontoDePartida.parentElement.querySelectorAll("p,h2") 
+    for (let elemento of elementos) {
+      texto += elemento.textContent.trim() + "\n"
+    }
+    dados.artigo = texto.trim();
 
+    if(dados.artigo.length > 0) dados.artigo = dados.artigo.replaceAll(/\\n/g, '\n')
 
     return dados
   }, link)
@@ -42,11 +51,17 @@ async function coletaDadosForum(pagina, link) {
 async function forumScrap() {
   const browser = await puppeteer.launch({headless:true})
   const page = await browser.newPage()
-  await page.goto("https://revistaforum.com.br/temas/agronegocio-5.html", { waitUntil: "domcontentloaded" })
- 
+  await page.goto("https://revistaforum.com.br/politica/", { waitUntil: "domcontentloaded" })
+  const uri = "mongodb://localhost:27017" // padrão do mongo
+  const client = new MongoClient(uri)
+  
 
   try{
-    for(let i = 1; i <= 2; i++){
+    await client.connect()
+    const db = client.db("Noticias-Politica")
+    const noticiasForum = db.collection("Forum")
+
+    for(let i = 1; i <= 1; i++){
       // vai pro fim
       await page.evaluate(() => {
         window.scrollTo(0, document.body.scrollHeight);
@@ -54,7 +69,7 @@ async function forumScrap() {
       
       // links
       let links = await page.evaluate(() => {
-        return Array.from(document.querySelectorAll(".col-xs-4 a")).map(el => el.getAttribute("href"))
+        return Array.from(document.querySelectorAll("h2.titulo a")).map(el => el.getAttribute("href"))
       })
       
       // coloca o link completo
@@ -63,25 +78,22 @@ async function forumScrap() {
         links[i] = raiz + links[i]
         // console.log(links[i])
       }
-
-      
+  
       // remove os links antigos
       await page.evaluate(() => {
         const artigosAntigos = document.querySelectorAll('.caja')
         artigosAntigos.forEach(artigo => artigo.remove())
       });
-      
+    
       // clica no botão
       try {
         let clickResult = await page.locator('div.btn').click({count: 2 ,delay: 1000})
         console.log(clickResult)
       } catch (e) {
-        console.log("Não foi possível carregar novos conteúdos")
-        console.log(e)
-        return null
+          console.log("Não foi possível carregar novos conteúdos")
+          console.log(e)
+          return null
       }   
-
-      // await new Promise(resolve => setTimeout(resolve, 4000));
       
       let scrapingPage = await browser.newPage()
       await scrapingPage.bringToFront()
@@ -90,9 +102,20 @@ async function forumScrap() {
 
         if(dict == null) continue;
         dict._id = dict.link // link é a chave primaria 
-        console.log(dict)
-        console.log("\n\n")
+        // console.log(dict)
+        // console.log("\n\n")
         
+        try {
+          await noticiasForum.insertOne(dict)
+          console.log(`✅ Documento inserido: ${dict.manchete?.substring(0, 50)}...`)
+
+        } catch (err) {
+          if(err.code == 11000){
+            console.error(`❌ noticia duplicada! ${dict.manchete.substring(0,50)}.`)
+          } else {
+            console.error("Erro ao inserir:", err)
+          }
+        }
       }
       await scrapingPage.close()
       await page.bringToFront()
@@ -101,6 +124,7 @@ async function forumScrap() {
   } catch (err) {
     console.error("Erro:", err)
   } finally {
+    await client.close()
     await browser.close()
   }
     
