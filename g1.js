@@ -13,6 +13,7 @@ async function coletaDadosG1(pagina, link) {
     if(autoresTag == null) {
       autoresTag = document.querySelector("p.content-publication-data__from")
     }
+    
     if(manchete) dados.manchete = manchete.textContent
     else return null
     if(lide) dados.lide = lide.textContent
