@@ -59,7 +59,7 @@ async function start() {
   try {
 
 
-    for (let pagina = 1; pagina <= 10; pagina++) {
+    for (let pagina = 1; pagina <= 1; pagina++) {
       let g1URL = `https://agenciabrasil.ebc.com.br/politica?page=${pagina}`
       await page.goto(g1URL, { waitUntil: "domcontentloaded" })
 
@@ -81,7 +81,7 @@ async function start() {
 
         if(dict == null) continue;
         dict._id = dict.link;  // link é a chave primaria 
-        // console.log(dict.autores)
+        console.log(dict)
 
       }
       await scrapingPage.close()

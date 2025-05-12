@@ -58,7 +58,7 @@ async function cartaCapitalScraping() {
 
   try {
 
-    for (let pagina = 1; pagina <= 10; pagina++) {
+    for (let pagina = 1; pagina <= 1; pagina++) {
       let cartaCapitalURL = `https://www.cartacapital.com.br/politica/page/${pagina}/`
       await page.goto(cartaCapitalURL, { waitUntil: "domcontentloaded" })
 

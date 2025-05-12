@@ -96,7 +96,7 @@ async function forumScrap() {
 
         if(dict == null) continue;
         dict._id = dict.link // link é a chave primaria 
-        // console.log(dict)
+        console.log(dict)
         // console.log("\n\n")
 
       }

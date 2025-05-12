@@ -58,7 +58,7 @@ async function cnnScrap() {
 
   try{
 
-    for(let i = 1; i < 10; i++){
+    for(let i = 1; i <= 1; i++){
         await page.evaluate(() => {
           window.scrollTo(0, document.body.scrollHeight);
         });
@@ -88,7 +88,7 @@ async function cnnScrap() {
   
           if(dict == null) continue;
           dict._id = dict.link // link é a chave primaria 
-          // console.log(dict)
+          console.log(dict)
           // console.log("\n\n")
           
         }

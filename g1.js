@@ -7,7 +7,7 @@ async function coletaDadosG1(pagina, link) {
       portal: "g1",
       link: window.location.href
     }
-    
+
     // Manchete
     let manchete = document.querySelector("h1.content-head__title")
     if(manchete) dados.manchete = manchete.textContent
@@ -48,7 +48,7 @@ async function scrapG1() {
   const paginaScraping = await browser.newPage()
 
   try {
-    for (let pagina = 1; pagina <= 2; pagina++) {
+    for (let pagina = 1; pagina <= 1; pagina++) {
       let g1URL = `https://g1.globo.com/economia/agronegocios/index/feed/pagina-${pagina}.ghtml`
       await paginaPortal.bringToFront()
       await paginaPortal.goto(g1URL, { waitUntil: "domcontentloaded" })
