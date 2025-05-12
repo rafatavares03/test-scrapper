@@ -1,5 +1,5 @@
 const puppeteer = require('puppeteer')
-
+const fs = require('fs')
 
 async function coletaDadosCartaCapital(pagina, link) {
   await pagina.goto(link)
@@ -52,9 +52,12 @@ async function coletaDadosCartaCapital(pagina, link) {
 }
 
 
-async function cartaCapitalScraping(URL) {
-  const browser = await puppeteer.launch({headless: false})
+async function cartaCapitalScraping(URL, tipo) {
+  const browser = await puppeteer.launch({headless: true})
   const page = await browser.newPage()
+  
+  const arquivo = fs.createWriteStream(`./portais_jsons/Carta_Capital-${tipo}.jsonl`, { flags: 'a' })
+
 
   try {
 
@@ -73,8 +76,9 @@ async function cartaCapitalScraping(URL) {
 
         if(dict == null) continue;
         dict._id = dict.link;  // link é a chave primaria 
-        console.log(dict)
+        // console.log(dict)
         
+        arquivo.write(JSON.stringify(dict) + '\n')
       
       }
       await scrapingPage.close()
@@ -90,7 +94,7 @@ async function cartaCapitalScraping(URL) {
 
 
 function scrapCartaPolitica(){
-  cartaCapitalScraping("https://www.cartacapital.com.br/politica/page/")
+  cartaCapitalScraping("https://www.cartacapital.com.br/politica/page/", "Politica")
 }
 
 module.exports = {scrapCartaPolitica}

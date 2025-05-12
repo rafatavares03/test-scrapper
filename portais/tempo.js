@@ -1,4 +1,5 @@
 const puppeteer = require('puppeteer')
+const fs = require('fs')
 
 async function coletaDadosTempo(pagina, link) {
   await pagina.goto(link, { waitUntil: "domcontentloaded" })
@@ -63,6 +64,7 @@ async function tempoScrap(URL) {
   const browser = await puppeteer.launch({headless:true})
   const page = await browser.newPage()
 
+    const arquivo = fs.createWriteStream(`./portais_jsons/O_Tempo-${tipo}.jsonl`, { flags: 'a' })
   try {
 
     for (let pagina = 1; pagina <= 1; pagina++) {
@@ -89,8 +91,10 @@ async function tempoScrap(URL) {
 
         if(dict == null) continue;
         dict._id = dict.link;  // link é a chave primaria 
-        console.log(dict)
-        console.log("\n\n")
+        // console.log(dict)
+        // console.log("\n\n")
+
+        arquivo.write(JSON.stringify(dict) + '\n')
         
       }
       await scrapingPage.close()
@@ -104,10 +108,9 @@ async function tempoScrap(URL) {
   }
 }
 
-tempoScrap()
 
 function scrapTempoPolitica(){
-  tempoScrap("https://www.otempo.com.br/politica/page/")
+  tempoScrap("https://www.otempo.com.br/politica/page/", "Politica")
 }
 
 module.exports = {scrapTempoPolitica}

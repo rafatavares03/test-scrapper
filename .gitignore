@@ -1,3 +1,4 @@
 node_modules 
 jsons/*.json 
 .txt
+/portais_jsons/

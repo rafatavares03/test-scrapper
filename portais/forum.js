@@ -1,5 +1,5 @@
 const puppeteer = require('puppeteer')
-
+const fs = require('fs')
 
 async function coletaDadosForum(pagina, link) {
   await pagina.goto(link, { waitUntil: "domcontentloaded" })
@@ -48,11 +48,12 @@ async function coletaDadosForum(pagina, link) {
 
 
 
-async function forumScrap(URL) {
+async function forumScrap(URL, tipo) {
   const browser = await puppeteer.launch({headless:true})
   const page = await browser.newPage()
-  await page.goto(URL, { waitUntil: "domcontentloaded" })
+  await page.goto(`${URL}`, { waitUntil: "domcontentloaded" })
 
+const arquivo = fs.createWriteStream(`./portais_jsons/Forum-${tipo}.jsonl`, { flags: 'a' })
   try{
 
     for(let i = 1; i <= 1; i++){
@@ -96,7 +97,10 @@ async function forumScrap(URL) {
 
         if(dict == null) continue;
         dict._id = dict.link // link é a chave primaria 
-        console.log(dict)
+        // console.log(dict)
+
+        arquivo.write(JSON.stringify(dict) + '\n')
+
         // console.log("\n\n")
 
       }
@@ -111,11 +115,10 @@ async function forumScrap(URL) {
   }
     
 }
-forumScrap()
 
 
 function scrapForumPolitica(){
-  forumScrap("https://revistaforum.com.br/politica/")
+  forumScrap("https://revistaforum.com.br/politica/", "Politica")
 }
 
 module.exports = {scrapForumPolitica}

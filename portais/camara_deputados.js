@@ -1,4 +1,5 @@
 const puppeteer = require('puppeteer')
+const fs = require('fs')
 
 async function coletaDadosCamaraDep(pagina, link) {
   await pagina.goto(link)
@@ -61,9 +62,11 @@ async function coletaDadosCamaraDep(pagina, link) {
   })
 }
 
-async function camaraDepScrap(URL) {
+async function camaraDepScrap(URL, tipo) {
   const browser = await puppeteer.launch()
   const page = await browser.newPage()
+
+  const arquivo = fs.createWriteStream(`./portais_jsons/Camara_deputados-${tipo}.jsonl`, { flags: 'a' })
 
   try {
     for (let pagina = 1; pagina <= 1; pagina++) {
@@ -81,7 +84,10 @@ async function camaraDepScrap(URL) {
 
         if(dict == null) continue;
         dict._id = dict.link;  // link é a chave primaria 
-        console.log(dict)
+        // console.log(dict)
+
+        arquivo.write(JSON.stringify(dict) + '\n')
+        
       }
       await scrapingPage.close()
       await page.bringToFront()
@@ -96,7 +102,7 @@ async function camaraDepScrap(URL) {
 
 
 function scrapCamaraPolitica(){
-  camaraDepScrap("https://www.camara.leg.br/noticias/ultimas?pagina=")
+  camaraDepScrap("https://www.camara.leg.br/noticias/ultimas?pagina=", "Politica")
 }
 
 module.exports = {scrapCamaraPolitica}

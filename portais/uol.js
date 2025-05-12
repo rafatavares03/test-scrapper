@@ -1,4 +1,5 @@
 const puppeteer = require('puppeteer')
+const fs = require('fs')
 
 async function coletaDadosUol(pagina, link) {
   await pagina.goto(link, {waitUntil: "domcontentloaded"})
@@ -37,12 +38,14 @@ async function coletaDadosUol(pagina, link) {
   })
 }
 
-async function uolScrap(URL) {
+async function uolScrap(URL, tipo) {
   const browser = await puppeteer.launch()
   const page = await browser.newPage()
-  await page.goto(URL, { waitUntil: "domcontentloaded" })
+  await page.goto(`${URL}`, { waitUntil: "domcontentloaded" })
 
-  await new Promise(resolve => setTimeout(resolve, 2222)); // a pagina tem que esquentar
+  // await new Promise(resolve => setTimeout(resolve, 2222)); // a pagina tem que esquentar
+
+  const arquivo = fs.createWriteStream(`./portais_jsons/UOL-${tipo}.jsonl`, { flags: 'a' })
 
 
   try{
@@ -61,7 +64,8 @@ async function uolScrap(URL) {
       // Imprime os links
       for (let i = 0; i < links.length; i++) {
         let noticia = await coletaDadosUol(scrapingPage, links[i])
-        console.log(noticia)
+        // console.log(noticia)
+        arquivo.write(JSON.stringify(dict) + '\n')
       }
       await scrapingPage.close()
       await page.bringToFront()
@@ -91,10 +95,9 @@ async function uolScrap(URL) {
   }
 }
   
-  uolScrap()
 
 function scrapUOLPolitica(){
-  uolScrap("https://noticias.uol.com.br/politica/")
+  uolScrap("https://noticias.uol.com.br/politica/", "Politica")
 }
 
 module.exports = {scrapUOLPolitica}

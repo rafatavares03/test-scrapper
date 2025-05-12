@@ -1,4 +1,5 @@
 const puppeteer = require('puppeteer')
+const fs = require('fs')
 
 async function coletaDadosAgenBr(pagina, link) {
   await pagina.goto(link, { waitUntil: "domcontentloaded" })
@@ -52,13 +53,13 @@ async function coletaDadosAgenBr(pagina, link) {
   }, link)
 }
 
-async function start(URL) {
+async function start(URL, tipo) {
   const browser = await puppeteer.launch()
   const page = await browser.newPage()
 
+  const arquivo = fs.createWriteStream(`./portais_jsons/Agencia_brasil-${tipo}.jsonl`, { flags: 'a' })
+
   try {
-
-
     for (let pagina = 1; pagina <= 1; pagina++) {
       let AgenciaURL = `${URL}${pagina}`
       await page.goto(AgenciaURL, { waitUntil: "domcontentloaded" })
@@ -81,7 +82,9 @@ async function start(URL) {
 
         if(dict == null) continue;
         dict._id = dict.link;  // link é a chave primaria 
-        console.log(dict)
+        // console.log(dict)
+
+        arquivo.write(JSON.stringify(dict) + '\n')
 
       }
       await scrapingPage.close()
@@ -96,11 +99,11 @@ async function start(URL) {
 }
 
 function scrapAgenciaPolitica(){
-  start("https://agenciabrasil.ebc.com.br/politica?page=")
+  start("https://agenciabrasil.ebc.com.br/politica?page=", "Politica")
 }
 
 function scrapAgenciaEconomia(){
-  start("https://agenciabrasil.ebc.com.br/economia?page=")
+  start("https://agenciabrasil.ebc.com.br/economia?page=", "Economia")
 }
 
 module.exports = {scrapAgenciaEconomia, scrapAgenciaPolitica}

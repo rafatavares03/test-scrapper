@@ -1,4 +1,5 @@
 const puppeteer = require('puppeteer')
+const fs = require('fs')
 
 async function coletaDadosCongressoEmFoco(pagina, link) {
   await pagina.goto(link, {waitUntil: "domcontentloaded"})
@@ -46,9 +47,11 @@ async function coletaDadosCongressoEmFoco(pagina, link) {
   })
 }
 
-async function congressoEmFocoScrap(URL) {
+async function congressoEmFocoScrap(URL, tipo) {
   const browser = await puppeteer.launch()
   const page = await browser.newPage()
+  
+  const arquivo = fs.createWriteStream(`./portais_jsons/Congresso-${tipo}.jsonl`, { flags: 'a' })
 
   try {
 
@@ -62,18 +65,19 @@ async function congressoEmFocoScrap(URL) {
         
       for(let i = 0; i < links.length; i++ ){
         let noticia = await coletaDadosCongressoEmFoco(page, links[i])
-        console.log(noticia)
+        // console.log(noticia)
       }
-      console.log(links.length)
+      // console.log(links.length)
 
       let scrapingPage = await browser.newPage()
       await scrapingPage.bringToFront()
       for (let i = 0; i < links.length; i++) {
-        let dict = await coletaDadosAgenBr(scrapingPage, links[i])
+        let dict = await coletaDadosCongressoEmFoco(scrapingPage, links[i])
 
         if(dict == null) continue;
         dict._id = dict.link;  // link é a chave primaria 
-        console.log(dict)
+        // console.log(dict)
+        arquivo.write(JSON.stringify(dict) + '\n')
         
       }
       await scrapingPage.close()
@@ -87,11 +91,10 @@ async function congressoEmFocoScrap(URL) {
   }
 }
 
-congressoEmFocoScrap()
 
 
 function scrapCongressoPolitica(){
-  congressoEmFocoScrap("https://www.congressoemfoco.com.br/noticia?pagina=")
+  congressoEmFocoScrap("https://www.congressoemfoco.com.br/noticia?pagina=", "Politica")
 }
 
 module.exports = {scrapCongressoPolitica}

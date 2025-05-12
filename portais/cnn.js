@@ -1,5 +1,5 @@
 const puppeteer = require('puppeteer')
-
+const fs = require('fs')
 
 async function coletaDadosCNN(pagina, link) {
   await pagina.goto(link, { waitUntil: "domcontentloaded"})
@@ -51,10 +51,12 @@ async function coletaDadosCNN(pagina, link) {
   }, link)
 }
 
-async function cnnScrap(URL) {
-  const browser = await puppeteer.launch({headless:false})
+async function cnnScrap(URL, tipo) {
+  const browser = await puppeteer.launch({headless:true})
   const page = await browser.newPage()
-  await page.goto(URL, { waitUntil: "domcontentloaded" })
+  await page.goto(`${URL}`, { waitUntil: "domcontentloaded" })
+
+  const arquivo = fs.createWriteStream(`./portais_jsons/CNN-${tipo}.jsonl`, { flags: 'a' })
 
   try{
 
@@ -88,8 +90,10 @@ async function cnnScrap(URL) {
   
           if(dict == null) continue;
           dict._id = dict.link // link é a chave primaria 
-          console.log(dict)
+          // console.log(dict)
           // console.log("\n\n")
+
+          arquivo.write(JSON.stringify(dict) + '\n')
           
         }
         await scrapingPage.close()
@@ -102,10 +106,8 @@ async function cnnScrap(URL) {
   }	
 }
 
-cnnScrap()
-
 function scrapCNNPolitica(){
-  cnnScrap("https://www.cnnbrasil.com.br/politica/")
+  cnnScrap("https://www.cnnbrasil.com.br/politica/", "Politica")
 }
 
 module.exports = {scrapCNNPolitica}

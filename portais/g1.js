@@ -1,4 +1,6 @@
 const puppeteer = require('puppeteer')
+const fs = require('fs')
+
 
 async function coletaDadosG1(pagina, link) {
   await pagina.goto(link, { waitUntil: "domcontentloaded" })
@@ -42,10 +44,12 @@ async function coletaDadosG1(pagina, link) {
   })
 }
 
-async function scrapG1(URL) {
-  const browser = await puppeteer.launch()
+async function scrapG1(URL, tipo) {
+  const browser = await puppeteer.launch({headless : true})
   const paginaPortal = await browser.newPage()
   const paginaScraping = await browser.newPage()
+
+  const arquivo = fs.createWriteStream(`./portais_jsons/g1-${tipo}.jsonl`, { flags: 'a' })
 
   try {
     for (let pagina = 1; pagina <= 1; pagina++) {
@@ -61,7 +65,9 @@ async function scrapG1(URL) {
       for (let i = 0; i < links.length; i++) {
         let dict = await coletaDadosG1(paginaScraping, links[i])
         if(dict == null) continue;
-        console.log(dict)
+        // console.log(dict)
+
+        arquivo.write(JSON.stringify(dict) + '\n')
       }
     }
     await paginaScraping.close()
@@ -74,12 +80,12 @@ async function scrapG1(URL) {
 }
 // politica
 function scrapG1Politica(){
-  scrapG1("https://g1.globo.com/politica/index/feed/pagina-")
+  scrapG1(`https://g1.globo.com/politica/index/feed/pagina-`, "politica")
 }
 
 // economia
 function scrapG1Economia(){
-  scrapG1("https://g1.globo.com/economia/index/feed/pagina-")
+  scrapG1("https://g1.globo.com/economia/index/feed/pagina-", "economia")
 }
 
 module.exports = {scrapG1Economia, scrapG1Politica}
