@@ -97,4 +97,8 @@ function scrapCartaPolitica(){
   cartaCapitalScraping("https://www.cartacapital.com.br/politica/page/", "Politica")
 }
 
-module.exports = {scrapCartaPolitica}
+function scrapCartaEconomia(){
+  cartaCapitalScraping("https://www.cartacapital.com.br/economia/", "Economia")
+}
+
+module.exports = {scrapCartaPolitica, scrapCartaEconomia}

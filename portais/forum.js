@@ -121,4 +121,8 @@ function scrapForumPolitica(){
   forumScrap("https://revistaforum.com.br/politica/", "Politica")
 }
 
-module.exports = {scrapForumPolitica}
+function scrapForumEconomia(){
+  forumScrap("https://revistaforum.com.br/economia/", "Economia")
+}
+
+module.exports = {scrapForumPolitica, scrapForumEconomia}

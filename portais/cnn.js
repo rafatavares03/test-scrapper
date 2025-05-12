@@ -110,7 +110,12 @@ function scrapCNNPolitica(){
   cnnScrap("https://www.cnnbrasil.com.br/politica/", "Politica")
 }
 
-module.exports = {scrapCNNPolitica}
+function scrapCNNEconomia(){
+  cnnScrap("https://www.cnnbrasil.com.br/economia/", "Economia")
+
+}
+
+module.exports = {scrapCNNPolitica, scrapCNNEconomia}
 
 
 

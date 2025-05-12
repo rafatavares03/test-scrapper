@@ -100,4 +100,9 @@ function scrapUOLPolitica(){
   uolScrap("https://noticias.uol.com.br/politica/", "Politica")
 }
 
-module.exports = {scrapUOLPolitica}
+function scrapUOLEconomia(){
+  uolScrap("https://economia.uol.com.br/ultimas/", "Economia")
+}
+
+
+module.exports = {scrapUOLPolitica, scrapUOLEconomia}
