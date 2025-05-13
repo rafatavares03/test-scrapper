@@ -92,50 +92,9 @@ async function infoMoneyscrap(URL, tipo) {
   }	
 }
 
-function scrapCNNPolitica(){
-    infoMoneyscrap("https://www.cnnbrasil.com.br/politica/", "Politica")
+
+async function scrappingInfoMoney(){
+  infoMoneyscrap("https://www.infomoney.com.br/economia/", "Economia")
 }
 
-infoMoneyscrap("https://www.infomoney.com.br/economia/", "Economia")
-function scrapCNNEconomia(){
-
-}
-
-module.exports = {scrapCNNPolitica, scrapCNNEconomia}
-
-
-
-
-
-
-
-
-// // Coleta os links das notícias
-// for(let i = 0; i <= 1000; i++) { //tem que pegar 500, na teoria
-
-//   // await page.evaluate(() => {
-//   //   window.scrollTo(0, document.body.scrollHeight);
-//   // });
-
-//   await page.evaluate((i) => {
-//     const btn = document.querySelector('.block-list-get-more-btn');
-//     if (btn) {
-//       // btn.setAttribute('data-perpage', '1000');  // deixa por enquanto tavares
-//       btn.setAttribute('data-page-block-list', `${i}`);
-//       btn.click();
-//     }
-//   }, i); 
-    
-//   await page.evaluate(() => {
-//     window.scrollTo(0, document.body.scrollHeight);
-//     });
-
-//   await new Promise(resolve => setTimeout(resolve, 10)); // pra desencargo  
-//   } 
-
-
-// console.log(links.length)
-// // // Imprime os links
-// // for (let i = 0; i < links.length; i++) {
-// //   console.log(links[i])
-// // }
+module.exports = {scrappingInfoMoney}
