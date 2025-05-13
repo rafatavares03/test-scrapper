@@ -76,7 +76,7 @@ async function scrapCNN(URL, tipo) {
 
         try {
           let clickResult = await page.locator('button.block-list-get-more-btn').click({count: 2 ,delay: 1000})
-          console.log(clickResult)
+          // console.log(clickResult)
         } catch (e) {
             console.log("Não foi possível carregar novos conteúdos")
             console.log(e)

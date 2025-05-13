@@ -77,7 +77,7 @@ async function scrapUol(URL, tipo) {
       
       try {
         let clickResult = await page.locator('button.ver-mais').click({count: 2 ,delay: 1000})
-        console.log(clickResult)
+        // console.log(clickResult)
       } catch (e) {
         console.log("Não foi possível carregar novos conteúdos")
         console.log(e)
@@ -96,9 +96,11 @@ async function scrapUol(URL, tipo) {
 }
 
 async function scrapingUol(){
-  await scrapUol("https://noticias.uol.com.br/politica/", "Politica")
   await scrapUol("https://economia.uol.com.br/ultimas/", "Economia")
+  await scrapUol("https://noticias.uol.com.br/politica/", "Politica")
 }
+
+scrapingUol()
 
 
 module.exports = {scrapingUol}

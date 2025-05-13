@@ -5,7 +5,7 @@ async function coletaDadosAgenBr(pagina, link) {
   await pagina.goto(link, { waitUntil: "domcontentloaded" })
   return await pagina.evaluate((link) => {
     const dados = {}
-    dados.portal = "Agencia_Brasil"
+    dados.portal = "Agencia Brasil"
     dados.link = link
   
     // Manchete

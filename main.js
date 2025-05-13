@@ -21,6 +21,5 @@ async function main(){
     await scrapingCongressoEmFoco()
     await scrapingCamaraDeputados()
 }
-
 main()
 
