@@ -1,7 +1,7 @@
 const puppeteer = require('puppeteer')
 const fs = require('fs')
 
-async function coletaInfoMoney(pagina, link) {
+async function coletaInfo(pagina, link) {
   await pagina.goto(link, { waitUntil: "domcontentloaded"})
   return await pagina.evaluate((link) => {
     const dados = {}
@@ -9,33 +9,31 @@ async function coletaInfoMoney(pagina, link) {
     dados.link = link
 
     // Manchete
-    let manchete = document.querySelector("body > main > div.max-w-5xl.my-4.mx-auto.space-y-4.px-6.xl\:px-0 > h1")
-    if(manchete) dados.manchete = manchete.textContent
+    let manchete = document.querySelector(".text-3xl")
+    if(manchete) dados.manchete = manchete.textContent.trim()
     else return null
-
+  
     // Lide
-    let lide = document.querySelector("body > main > div.max-w-5xl.my-4.mx-auto.space-y-4.px-6.xl\:px-0 > div")
-    if(lide) dados.lide = lide.textContent
+    let lide = document.querySelector(".text-lg")
+    if(lide) dados.lide = lide.textContent.trim()
 
-    // Data
-    let dataPublicacao = document.querySelector("body > main > div.lg\:flex.justify-between.items-center.max-w-screen-lg.mx-auto.pb-4.mb-6.px-6.xl\:px-0.border-0.md\:border-b > div.mb-4.lg\:mb-0 > div > div > p.im-mob-core-description.lg\:im-web-core-description.text-wl-neutral-600 > time:nth-child(1)").getAttribute("datatime")
+
+    // Datatime[itemprop="dateModified"]
+    let dataPublicacao = document.querySelector("div[data-ds-component='author-small'] time")
+
     if(dataPublicacao) {
-        dados.data = dataPublicacao
+        dados.data = dataPublicacao.getAttribute("datetime")
     }
 
     // Autores
-    let autores = document.querySelector("body > main > div.lg\:flex.justify-between.items-center.max-w-screen-lg.mx-auto.pb-4.mb-6.px-6.xl\:px-0.border-0.md\:border-b > div.mb-4.lg\:mb-0 > div > div > p.flex.flex-wrap.items-center > a")
-    if(autores != null) {
-      autores = new Array(autores.textContent)
-    }
+    let autores = Array.from(document.querySelectorAll("div[data-ds-component='author-small'] a.text-base, div[data-ds-component='author-small'] span.text-base")).map(x => x.textContent.trim())
     dados.autores = autores
-
 
     return dados
   }, link)
 }
 
-async function scrapInfoMoney(URL, tipo) {
+async function infoMoneyscrap(URL, tipo) {
   const browser = await puppeteer.launch({headless:true})
   const page = await browser.newPage()
   await page.goto(`${URL}`, { waitUntil: "domcontentloaded" })
@@ -74,7 +72,7 @@ async function scrapInfoMoney(URL, tipo) {
         let scrapingPage = await browser.newPage()
         await scrapingPage.bringToFront()
         for (let i = 0; i < links.length; i++) {
-          let dict = await coletaInfoMoney(scrapingPage, links[i])
+          let dict = await coletaInfo(scrapingPage, links[i])
   
           if(dict == null) continue;
           dict._id = dict.link // link é a chave primaria 
@@ -94,11 +92,16 @@ async function scrapInfoMoney(URL, tipo) {
   }	
 }
 
-async function scrapingInfoMoney(){
-  await scrapInfoMoney("https://www.infomoney.com.br/economia/")
+function scrapCNNPolitica(){
+    infoMoneyscrap("https://www.cnnbrasil.com.br/politica/", "Politica")
 }
 
-module.exports = {scrapingInfoMoney}
+infoMoneyscrap("https://www.infomoney.com.br/economia/", "Economia")
+function scrapCNNEconomia(){
+
+}
+
+module.exports = {scrapCNNPolitica, scrapCNNEconomia}
 
 
 
