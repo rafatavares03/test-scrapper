@@ -65,18 +65,19 @@ async function coletaDadosTempo(pagina, link) {
 
 async function scrapTempo(URL) {
   const browser = await puppeteer.launch({headless:true})
-  const page = await browser.newPage()
   const scrapingPage = await browser.newPage()
+  const paginaPortal = await browser.newPage()
 
   try {
 
     for (let pagina = 1; pagina <= 1; pagina++) {
       let tempoURL = `${URL}${pagina}`
-      await page.goto(tempoURL, { waitUntil: "domcontentloaded" })
+      await paginaPortal.bringToFront()
+      await paginaPortal.goto(tempoURL, { waitUntil: "domcontentloaded" })
 
         //   await new Promise(resolve => setTimeout(resolve, 4000)); // pra analisar 
 
-      const links = await page.evaluate(() => {
+      const links = await paginaPortal.evaluate(() => {
         return Array.from(document.querySelectorAll("a.list__link")).map(x => x.getAttribute("href"))
       })
         
@@ -88,7 +89,6 @@ async function scrapTempo(URL) {
 
 
       await scrapingPage.bringToFront()
-
       let dict = []
       for (let i = 0; i < links.length; i++) {
         let temp = await coletaDadosTempo(scrapingPage, links[i])
@@ -102,7 +102,6 @@ async function scrapTempo(URL) {
 
         
       }
-      await page.bringToFront()
       
       try {
         await inserirNoticia(dict)

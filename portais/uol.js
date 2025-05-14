@@ -5,9 +5,10 @@ const {inserirNoticia} = require('../banco_de_dados/bancoInserir')
 async function coletaDadosUol(pagina, link) {
   await pagina.goto(link, {waitUntil: "domcontentloaded"})
   return pagina.evaluate(() => {
-    let dados = {}
-    dados.portal = "Uol"
-    dados._id = window.location.href
+    let dados = {
+      portal: "Uol",
+      _id: window.location.href
+    }
 
     // Manchete
     let manchete = document.querySelector("h1.title")
@@ -43,16 +44,17 @@ async function coletaDadosUol(pagina, link) {
 
 async function scrapUol(URL, tipo) {
   const browser = await puppeteer.launch({headless: false})
-  const page = await browser.newPage()
-  await page.goto(`${URL}`, { waitUntil: "domcontentloaded" })
   const scrapingPage = await browser.newPage()
+  const paginaPortal = await browser.newPage()
+  await paginaPortal.goto(`${URL}`, { waitUntil: "domcontentloaded" })
 
   // await new Promise(resolve => setTimeout(resolve, 2222)); // a pagina tem que esquentar
 
   try{
 
     for(let i = 1; i <= 3; i++){
-      await page.evaluate(() => {
+      await paginaPortal.bringToFront()
+      await paginaPortal.evaluate(() => {
         window.scrollTo(0, document.body.scrollHeight);
       });
       
@@ -76,8 +78,6 @@ async function scrapUol(URL, tipo) {
         noticia.tema = tipo
         dict.push(noticia)
       }
-
-      await page.bringToFront()
       
       try {
         await page.locator('button.ver-mais').click({count: 2 ,delay: 1000})
