@@ -40,7 +40,7 @@ async function infoMoneyscrap(URL, tipo) {
   const browser = await puppeteer.launch({headless:true})
   const page = await browser.newPage()
   await page.goto(`${URL}`, { waitUntil: "domcontentloaded" })
-
+  const scrapingPage = await browser.newPage()
 
   try{
 
@@ -71,7 +71,6 @@ async function infoMoneyscrap(URL, tipo) {
         //     console.log(links[i])
         // }
         
-        let scrapingPage = await browser.newPage()
         await scrapingPage.bringToFront()
 
         let dict = []
@@ -85,14 +84,14 @@ async function infoMoneyscrap(URL, tipo) {
           // console.log(dict)
           // console.log("\n\n")
         }
-        await scrapingPage.close()
-        await page.bringToFront()
 
+        await page.bringToFront()
+        
         try {
           await inserirNoticia(dict)
         } catch (err) {
           if (err.name === 'MongoBulkWriteError' || err.code === 11000) {
-          const totalErros = err.writeErrors ? err.writeErrors.length : 0
+            const totalErros = err.writeErrors ? err.writeErrors.length : 0
           
           if ((totalErros / dict.length) >= 0.5) {
             console.warn(`Erro de duplicata = ${(totalErros / dict.length)} .`)
@@ -104,6 +103,7 @@ async function infoMoneyscrap(URL, tipo) {
   } catch (err) {
     console.error("Erro:", err)
   } finally {
+    await scrapingPage.close()
     await browser.close()
   }	
 }
