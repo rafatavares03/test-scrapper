@@ -1,7 +1,7 @@
 const puppeteer = require('puppeteer')
-const fs = require('fs')
 const {inserirNoticia} = require('../banco_de_dados/bancoInserir')
-const { json } = require('stream/consumers')
+
+
 
 async function coletaDadosCongressoEmFoco(pagina, link) {
   await pagina.goto(link, {waitUntil: "domcontentloaded"})
@@ -87,17 +87,12 @@ async function scrapCongressoEmFoco(URL, tipo) {
         if (err.name === 'MongoBulkWriteError' || err.code === 11000) {
           const totalErros = err.writeErrors ? err.writeErrors.length : 0
 
-          if ((totalErros / dict.length) <= 0.5) {
-            console.warn("Muitos documentos duplicados, mas dentro do tolerável.")
-            } else {
-              throw err // aborta, erro grave
-            }
-            
-        } else {
-          throw err
-        }
+          if ((totalErros / dict.length) >= 0.5) {
+            console.warn(`Erro de duplicata = ${(totalErros / dict.length)} .`)
+            return null
+          } 
+        } 
       }
-
     }
   } catch (err) {
     console.error("Erro:", err)
@@ -106,8 +101,8 @@ async function scrapCongressoEmFoco(URL, tipo) {
   }
 }
 
-scrapCongressoEmFoco("https://www.congressoemfoco.com.br/noticia?pagina=", "Politica")
 async function scrapingCongressoEmFoco(){
+  await scrapCongressoEmFoco("https://www.congressoemfoco.com.br/noticia?pagina=", "Politica")
 }
 
 module.exports = {scrapingCongressoEmFoco}
