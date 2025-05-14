@@ -16,11 +16,13 @@ async function main(){
     // await scrapingForum()
     // await scrapingCNN()
     // await scrapingG1()
-    // await scrapingUol() // ajeitar antes do banco
     // await scrapingCongressoEmFoco()
-    await scrapingCamaraDeputados()
+    // await scrapingCamaraDeputados()
     // await scrapingInfoMoney()
     // await scrapingTempo()
+
+    // await scrapingUol() // arrumar autores 
 }
+
 main()
 
