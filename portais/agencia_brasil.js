@@ -1,5 +1,6 @@
 const puppeteer = require('puppeteer')
-const fs = require('fs')
+const {inserirNoticia} = require('../banco_de_dados/bancoInserir')
+
 
 async function coletaDadosAgenBr(pagina, link) {
   await pagina.goto(link, { waitUntil: "domcontentloaded" })
@@ -57,7 +58,6 @@ async function scrapAgenciaBrasil(URL, tipo) {
   const browser = await puppeteer.launch()
   const page = await browser.newPage()
 
-  const arquivo = fs.createWriteStream(`./portais_jsons/Agencia_brasil-${tipo}.jsonl`, { flags: 'a' })
 
   try {
     for (let pagina = 1; pagina <= 1; pagina++) {
@@ -77,17 +77,30 @@ async function scrapAgenciaBrasil(URL, tipo) {
 
       let scrapingPage = await browser.newPage()
       await scrapingPage.bringToFront()
+
+      let dict = []
       for (let i = 0; i < links.length; i++) {
-        let dict = await coletaDadosAgenBr(scrapingPage, links[i])
-
-        if(dict == null) continue;
+        let temp = await coletaDadosAgenBr(scrapingPage, links[i])
+        if(temp == null) continue;
+        temp.tema = tipo
+        dict.push(temp)
         // console.log(dict)
-
-        arquivo.write(JSON.stringify(dict) + '\n')
-
       }
       await scrapingPage.close()
       await page.bringToFront()
+
+      try {
+        await inserirNoticia(dict)
+      } catch (err) {
+        if (err.name === 'MongoBulkWriteError' || err.code === 11000) {
+          const totalErros = err.writeErrors ? err.writeErrors.length : 0
+          
+          if ((totalErros / dict.length) >= 0.5) {
+            console.warn(`Erro de duplicata = ${(totalErros / dict.length)} .`)
+            return null
+          } 
+        } 
+      }
     }
 
   } catch (err) {
@@ -98,7 +111,7 @@ async function scrapAgenciaBrasil(URL, tipo) {
 }
 
 async function scrapingAgenciaBrasil(){
-  await scrapAgenciaBrasil("https://agenciabrasil.ebc.com.br/politica?page=", "Politica")
+  await scrapAgenciaBrasil("https://agenciabrasil.ebc.com.br/politica?page=", "Política")
   await scrapAgenciaBrasil("https://agenciabrasil.ebc.com.br/economia?page=", "Economia")
 }
 

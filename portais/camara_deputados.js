@@ -1,12 +1,12 @@
 const puppeteer = require('puppeteer')
-const fs = require('fs')
+const {inserirNoticia} = require('../banco_de_dados/bancoInserir')
 
 async function coletaDadosCamaraDep(pagina, link) {
   await pagina.goto(link)
   return pagina.evaluate(() => {
     let dados = {}
     dados.portal = "Portal da Câmara dos Deputados"
-    dados.link = window.location.href
+    dados._id = window.location.href
 
     // Manchete
     let manchete = document.querySelector("h1.g-artigo__titulo")
@@ -66,7 +66,6 @@ async function scrapCamaraDeputados(URL, tipo) {
   const browser = await puppeteer.launch()
   const page = await browser.newPage()
 
-  const arquivo = fs.createWriteStream(`./portais_jsons/Camara_deputados-${tipo}.jsonl`, { flags: 'a' })
 
   try {
     for (let pagina = 1; pagina <= 1; pagina++) {
@@ -79,20 +78,34 @@ async function scrapCamaraDeputados(URL, tipo) {
       
       let scrapingPage = await browser.newPage()
       await scrapingPage.bringToFront()
-      for (let i = 0; i < links.length; i++) {
-        let dict = await coletaDadosCamaraDep(scrapingPage, links[i])
 
-        if(dict == null) continue;
-        dict._id = dict.link;  // link é a chave primaria 
+      let dict = []
+      for (let i = 0; i < links.length; i++) {
+        let temp = await coletaDadosCamaraDep(scrapingPage, links[i])
+        if(temp == null) continue
+
+        temp.tema = tipo
+        dict.push(temp)
         // console.log(dict)
 
-        arquivo.write(JSON.stringify(dict) + '\n')
-        
       }
+
       await scrapingPage.close()
       await page.bringToFront()
-    }
 
+      try {
+        await inserirNoticia(dict)
+      } catch (err) {
+        if (err.name === 'MongoBulkWriteError' || err.code === 11000) {
+          const totalErros = err.writeErrors ? err.writeErrors.length : 0
+          
+          if ((totalErros / dict.length) >= 0.5) {
+            console.warn(`Erro de duplicata = ${(totalErros / dict.length)} .`)
+            return null
+          } 
+        } 
+      }
+    }
   } catch (err) {
     console.error("Erro:", err)
   } finally {
@@ -101,7 +114,7 @@ async function scrapCamaraDeputados(URL, tipo) {
 }
 
 async function scrapingCamaraDeputados(){
-  await scrapCamaraDeputados("https://www.camara.leg.br/noticias/ultimas?pagina=", "Politica")
+  await scrapCamaraDeputados("https://www.camara.leg.br/noticias/ultimas?pagina=", "Política")
 }
 
 module.exports = {scrapingCamaraDeputados}

@@ -1,12 +1,13 @@
 const puppeteer = require('puppeteer')
-const fs = require('fs')
+const {inserirNoticia} = require('../banco_de_dados/bancoInserir')
+
 
 async function coletaDadosCartaCapital(pagina, link) {
   await pagina.goto(link)
   return pagina.evaluate(() => {
     let dados = {}
-        dados.portal = "Carta Capital"
-    dados.link = window.location.href
+    dados.portal = "Carta Capital"
+    dados._id = window.location.href
 
     // Manchete
     let manchete = document.querySelector("section.s-content__heading h1")
@@ -55,9 +56,6 @@ async function coletaDadosCartaCapital(pagina, link) {
 async function scrapCartaCapital(URL, tipo) {
   const browser = await puppeteer.launch({headless: true})
   const page = await browser.newPage()
-  
-  const arquivo = fs.createWriteStream(`./portais_jsons/Carta_Capital-${tipo}.jsonl`, { flags: 'a' })
-
 
   try {
 
@@ -71,20 +69,33 @@ async function scrapCartaCapital(URL, tipo) {
       
       let scrapingPage = await browser.newPage()
       await scrapingPage.bringToFront()
-      for (let i = 0; i < links.length; i++) {
-        let dict = await coletaDadosCartaCapital(scrapingPage, links[i])
 
-        if(dict == null) continue;
-        dict._id = dict.link;  // link é a chave primaria 
-        // console.log(dict)
+      let dict = []
+      for (let i = 0; i < links.length; i++) {
+        let temp = await coletaDadosCartaCapital(scrapingPage, links[i])
         
-        arquivo.write(JSON.stringify(dict) + '\n')
-      
+        if(temp == null) continue;
+        temp.tema = tipo
+        dict.push(temp)
+        // console.log(dict) 
       }
+      
       await scrapingPage.close()
       await page.bringToFront()
+      
+      try {
+        await inserirNoticia(dict)
+      } catch (err) {
+        if (err.name === 'MongoBulkWriteError' || err.code === 11000) {
+          const totalErros = err.writeErrors ? err.writeErrors.length : 0
+          
+          if ((totalErros / dict.length) >= 0.5) {
+            console.warn(`Erro de duplicata = ${(totalErros / dict.length)} .`)
+            return null
+          } 
+        } 
+      }
     }
-
   } catch (err) {
     console.error("Erro:", err)
   } finally {
@@ -93,7 +104,7 @@ async function scrapCartaCapital(URL, tipo) {
 }
 
 async function scrapingCartaCapital(){
-  await scrapCartaCapital("https://www.cartacapital.com.br/politica/page/", "Politica")
+  await scrapCartaCapital("https://www.cartacapital.com.br/politica/page/", "Política")
   await scrapCartaCapital("https://www.cartacapital.com.br/economia/", "Economia")
 }
 

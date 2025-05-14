@@ -1,12 +1,13 @@
 const puppeteer = require('puppeteer')
-const fs = require('fs')
+const {inserirNoticia} = require('../banco_de_dados/bancoInserir')
+
 
 async function coletaDadosCNN(pagina, link) {
   await pagina.goto(link, { waitUntil: "domcontentloaded"})
   return await pagina.evaluate((link) => {
     const dados = {}
     dados.portal = "CNN"
-    dados.link = link
+    dados._id = link
 
     // Manchete
     let manchete = document.querySelector("h1.single-header__title")
@@ -56,7 +57,6 @@ async function scrapCNN(URL, tipo) {
   const page = await browser.newPage()
   await page.goto(`${URL}`, { waitUntil: "domcontentloaded" })
 
-  const arquivo = fs.createWriteStream(`./portais_jsons/CNN-${tipo}.jsonl`, { flags: 'a' })
 
   try{
 
@@ -85,19 +85,34 @@ async function scrapCNN(URL, tipo) {
         
         let scrapingPage = await browser.newPage()
         await scrapingPage.bringToFront()
+
+        let dict = []
         for (let i = 0; i < links.length; i++) {
-          let dict = await coletaDadosCNN(scrapingPage, links[i])
+          let temp = await coletaDadosCNN(scrapingPage, links[i])
   
-          if(dict == null) continue;
-          dict._id = dict.link // link é a chave primaria 
+          if(temp == null) continue;
+          temp.tema = tipo
+
+          dict.push(temp)
           // console.log(dict)
           // console.log("\n\n")
 
-          arquivo.write(JSON.stringify(dict) + '\n')
-          
         }
         await scrapingPage.close()
         await page.bringToFront()
+
+        try {
+          await inserirNoticia(dict)
+        } catch (err) {
+          if (err.name === 'MongoBulkWriteError' || err.code === 11000) {
+            const totalErros = err.writeErrors ? err.writeErrors.length : 0
+            
+            if ((totalErros / dict.length) >= 0.5) {
+              console.warn(`Erro de duplicata = ${(totalErros / dict.length)} .`)
+              return null
+            } 
+          } 
+        }
     }
   } catch (err) {
     console.error("Erro:", err)
@@ -107,7 +122,7 @@ async function scrapCNN(URL, tipo) {
 }
 
 async function scrapingCNN(){
-  await scrapCNN("https://www.cnnbrasil.com.br/politica/", "Politica")
+  await scrapCNN("https://www.cnnbrasil.com.br/politica/", "Política")
   await scrapCNN("https://www.cnnbrasil.com.br/economia/", "Economia")
 }
 

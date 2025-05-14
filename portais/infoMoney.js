@@ -1,12 +1,13 @@
 const puppeteer = require('puppeteer')
-const fs = require('fs')
+const {inserirNoticia} = require('../banco_de_dados/bancoInserir')
+
 
 async function coletaInfo(pagina, link) {
   await pagina.goto(link, { waitUntil: "domcontentloaded"})
   return await pagina.evaluate((link) => {
     const dados = {}
     dados.portal = "InfoMoney"
-    dados.link = link
+    dados._id = link
 
     // Manchete
     let manchete = document.querySelector(".text-3xl")
@@ -38,7 +39,6 @@ async function infoMoneyscrap(URL, tipo) {
   const page = await browser.newPage()
   await page.goto(`${URL}`, { waitUntil: "domcontentloaded" })
 
-  const arquivo = fs.createWriteStream(`./portais_jsons/infoMoney-${tipo}.jsonl`, { flags: 'a' })
 
   try{
 
@@ -65,25 +65,39 @@ async function infoMoneyscrap(URL, tipo) {
             return null
         }   
 
-        for(let i = 0; i < links.length; i++){
-            console.log(links[i])
-        }
+        // for(let i = 0; i < links.length; i++){
+        //     console.log(links[i])
+        // }
         
         let scrapingPage = await browser.newPage()
         await scrapingPage.bringToFront()
-        for (let i = 0; i < links.length; i++) {
-          let dict = await coletaInfo(scrapingPage, links[i])
-  
-          if(dict == null) continue;
-          dict._id = dict.link // link é a chave primaria 
-          console.log(dict)
-          // console.log("\n\n")
 
-          arquivo.write(JSON.stringify(dict) + '\n')
-          
+        let dict = []
+        for (let i = 0; i < links.length; i++) {
+          let temp = await coletaInfo(scrapingPage, links[i])
+  
+          if(temp == null) continue;
+          temp.tema = tipo
+
+          dict.push(temp)
+          // console.log(dict)
+          // console.log("\n\n")
         }
         await scrapingPage.close()
         await page.bringToFront()
+
+        try {
+          await inserirNoticia(dict)
+        } catch (err) {
+          if (err.name === 'MongoBulkWriteError' || err.code === 11000) {
+          const totalErros = err.writeErrors ? err.writeErrors.length : 0
+          
+          if ((totalErros / dict.length) >= 0.5) {
+            console.warn(`Erro de duplicata = ${(totalErros / dict.length)} .`)
+            return null
+          } 
+        } 
+      }
     }
   } catch (err) {
     console.error("Erro:", err)

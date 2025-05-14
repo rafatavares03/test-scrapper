@@ -96,7 +96,7 @@ async function scrapG1(URL, tipo) {
 
 
 
-scrapG1(`https://g1.globo.com/politica/index/feed/pagina-`, "Politica")
+scrapG1(`https://g1.globo.com/politica/index/feed/pagina-`, "Política")
 scrapG1("https://g1.globo.com/economia/index/feed/pagina-", "Economia")
 async function scrapingG1(){
 }

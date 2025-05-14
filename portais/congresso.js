@@ -66,15 +66,17 @@ async function scrapCongressoEmFoco(URL, tipo) {
       })
         
       // console.log(links.length)
-      let dict = []
       let scrapingPage = await browser.newPage()
       await scrapingPage.bringToFront()
+      
+      let dict = []
       for (let i = 0; i < links.length; i++) {
         let temp = await coletaDadosCongressoEmFoco(scrapingPage, links[i])
         if(temp == null) continue;
+        dict.tema = tipo
         dict.push(temp)
         // console.log("==\n")
-        console.log(temp)
+        // console.log(temp)
         // arquivo.write(JSON.stringify(dict) + '\n')
       }
 
@@ -102,7 +104,7 @@ async function scrapCongressoEmFoco(URL, tipo) {
 }
 
 async function scrapingCongressoEmFoco(){
-  await scrapCongressoEmFoco("https://www.congressoemfoco.com.br/noticia?pagina=", "Politica")
+  await scrapCongressoEmFoco("https://www.congressoemfoco.com.br/noticia?pagina=", "Política")
 }
 
 module.exports = {scrapingCongressoEmFoco}

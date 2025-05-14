@@ -1,12 +1,13 @@
 const puppeteer = require('puppeteer')
-const fs = require('fs')
+const {inserirNoticia} = require('../banco_de_dados/bancoInserir')
+
 
 async function coletaDadosTempo(pagina, link) {
   await pagina.goto(link, { waitUntil: "domcontentloaded" })
   return await pagina.evaluate((link) => {
     const dados = {
       portal: "O Tempo",
-      link: link,
+      _id: link,
     }
 
     // Manchete
@@ -64,7 +65,6 @@ async function scrapTempo(URL) {
   const browser = await puppeteer.launch({headless:true})
   const page = await browser.newPage()
 
-    const arquivo = fs.createWriteStream(`./portais_jsons/O_Tempo-${tipo}.jsonl`, { flags: 'a' })
   try {
 
     for (let pagina = 1; pagina <= 1; pagina++) {
@@ -86,19 +86,35 @@ async function scrapTempo(URL) {
 
       let scrapingPage = await browser.newPage()
       await scrapingPage.bringToFront()
-      for (let i = 0; i < links.length; i++) {
-        let dict = await coletaDadosTempo(scrapingPage, links[i])
 
-        if(dict == null) continue;
-        dict._id = dict.link;  // link é a chave primaria 
+      let dict = []
+      for (let i = 0; i < links.length; i++) {
+        let temp = await coletaDadosTempo(scrapingPage, links[i])
+
+        if(temp == null) continue;
+        temp.tema = tipo
+        
+        dict.push(temp)
         // console.log(dict)
         // console.log("\n\n")
 
-        arquivo.write(JSON.stringify(dict) + '\n')
         
       }
       await scrapingPage.close()
       await page.bringToFront()
+
+      try {
+        await inserirNoticia(dict)
+      } catch (err) {
+        if (err.name === 'MongoBulkWriteError' || err.code === 11000) {
+          const totalErros = err.writeErrors ? err.writeErrors.length : 0
+          
+          if ((totalErros / dict.length) >= 0.5) {
+            console.warn(`Erro de duplicata = ${(totalErros / dict.length)} .`)
+            return null
+          } 
+        } 
+      }
     }
 
   } catch (err) {
@@ -109,7 +125,7 @@ async function scrapTempo(URL) {
 }
 
 async function scrapingTempo(){
-  await scrapTempo("https://www.otempo.com.br/politica/page/", "Politica")
+  await scrapTempo("https://www.otempo.com.br/politica/page/", "Política")
 }
 
 module.exports = {scrapingTempo}

@@ -1,12 +1,13 @@
 const puppeteer = require('puppeteer')
-const fs = require('fs')
+const {inserirNoticia} = require('../banco_de_dados/bancoInserir')
+
 
 async function coletaDadosUol(pagina, link) {
   await pagina.goto(link, {waitUntil: "domcontentloaded"})
   return pagina.evaluate(() => {
     let dados = {}
     dados.portal = "Uol"
-    dados.link = window.location.href
+    dados._id = window.location.href
 
     // Manchete
     let manchete = document.querySelector("h1.title")
@@ -45,9 +46,6 @@ async function scrapUol(URL, tipo) {
 
   // await new Promise(resolve => setTimeout(resolve, 2222)); // a pagina tem que esquentar
 
-  const arquivo = fs.createWriteStream(`./portais_jsons/UOL-${tipo}.jsonl`, { flags: 'a' })
-
-
   try{
 
     for(let i = 1; i <= 1; i++){
@@ -62,10 +60,12 @@ async function scrapUol(URL, tipo) {
       let scrapingPage = await browser.newPage()
       await scrapingPage.bringToFront()
       // Imprime os links
+      let dict = []
       for (let i = 0; i < links.length; i++) {
         let noticia = await coletaDadosUol(scrapingPage, links[i])
         // console.log(noticia)
-        arquivo.write(JSON.stringify(noticia) + '\n')
+        noticia.tema = tipo
+        dict.push(noticia)
       }
       await scrapingPage.close()
       await page.bringToFront()
@@ -76,7 +76,7 @@ async function scrapUol(URL, tipo) {
       });
       
       try {
-        let clickResult = await page.locator('button.ver-mais').click({count: 2 ,delay: 1000})
+        await page.locator('button.ver-mais').click({count: 2 ,delay: 1000})
         // console.log(clickResult)
       } catch (e) {
         console.log("Não foi possível carregar novos conteúdos")
@@ -84,9 +84,20 @@ async function scrapUol(URL, tipo) {
         await browser.close()
         return null
       }   
-      
+
+      try {
+        await inserirNoticia(dict)
+      } catch (err) {
+        if (err.name === 'MongoBulkWriteError' || err.code === 11000) {
+          const totalErros = err.writeErrors ? err.writeErrors.length : 0
+          
+          if ((totalErros / dict.length) >= 0.5) {
+            console.warn(`Erro de duplicata = ${(totalErros / dict.length)} .`)
+            return null
+          } 
+        } 
+      }
     }
-    
     // await new Promise(resolve => setTimeout(resolve, 4000)); // pra analisar 
   } catch (err) {
     console.error("Erro:", err)
@@ -97,7 +108,7 @@ async function scrapUol(URL, tipo) {
 
 async function scrapingUol(){
   await scrapUol("https://economia.uol.com.br/ultimas/", "Economia")
-  await scrapUol("https://noticias.uol.com.br/politica/", "Politica")
+  await scrapUol("https://noticias.uol.com.br/politica/", "Política")
 }
 
 scrapingUol()
