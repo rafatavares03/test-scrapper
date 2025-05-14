@@ -4,10 +4,11 @@ const {inserirNoticia} = require('../banco_de_dados/bancoInserir')
 
 async function coletaDadosCNN(pagina, link) {
   await pagina.goto(link, { waitUntil: "domcontentloaded"})
-  return await pagina.evaluate((link) => {
-    const dados = {}
-    dados.portal = "CNN"
-    dados._id = link
+  return await pagina.evaluate(() => {
+    const dados = {
+      portal: "CNN",
+      _id: window.location.href
+    }
 
     // Manchete
     let manchete = document.querySelector("h1.single-header__title")
@@ -51,43 +52,42 @@ async function coletaDadosCNN(pagina, link) {
     // if(dados.artigo.length > 0) dados.artigo = dados.artigo.map(x => x.replaceAll(/\\n/g, '\n'))
 
     return dados
-  }, link)
+  })
 }
 
 async function scrapCNN(URL, tipo) {
   const browser = await puppeteer.launch({headless:true})
-  const page = await browser.newPage()
-  await page.goto(`${URL}`, { waitUntil: "domcontentloaded" })
-
+  const scrapingPage = await browser.newPage()
+  const paginaPortal = await browser.newPage()
+  await paginaPortal.goto(`${URL}`, { waitUntil: "domcontentloaded" })
 
   try{
 
-    for(let i = 1; i <= 1; i++){
-        await page.evaluate(() => {
-          window.scrollTo(0, document.body.scrollHeight);
-        });
+    for(let i = 1; i <= 1; i++){    
+      await paginaPortal.bringToFront()
+      await paginaPortal.evaluate(() => {
+        window.scrollTo(0, document.body.scrollHeight);
+      });
 
-        let links = await page.evaluate(() => {
-          return Array.from(document.querySelectorAll("a.home__list__tag")).map(el => el.getAttribute("href"))
-        })
+      let links = await paginaPortal.evaluate(() => {
+        return Array.from(document.querySelectorAll("a.home__list__tag")).map(el => el.getAttribute("href"))
+      })
 
-        await page.evaluate(() => {
-          const artigosAntigos = document.querySelectorAll('.home__list__item');
-          artigosAntigos.forEach(artigo => artigo.remove());
-        });
+      await paginaPortal.evaluate(() => {
+        const artigosAntigos = document.querySelectorAll('.home__list__item');
+        artigosAntigos.forEach(artigo => artigo.remove());
+      });
 
-        try {
-          let clickResult = await page.locator('button.block-list-get-more-btn').click({count: 2 ,delay: 1000})
-          // console.log(clickResult)
-        } catch (e) {
-            console.log("Não foi possível carregar novos conteúdos")
-            console.log(e)
-            return null
+      try {
+        let clickResult = await paginaPortal.locator('button.block-list-get-more-btn').click({count: 2 ,delay: 1000})
+        // console.log(clickResult)
+      } catch (e) {
+          console.log("Não foi possível carregar novos conteúdos")
+          console.log(e)
+          return null
         }   
         
-        let scrapingPage = await browser.newPage()
         await scrapingPage.bringToFront()
-
         let dict = []
         for (let i = 0; i < links.length; i++) {
           let temp = await coletaDadosCNN(scrapingPage, links[i])
@@ -100,9 +100,7 @@ async function scrapCNN(URL, tipo) {
           // console.log("\n\n")
 
         }
-        await scrapingPage.close()
-        await page.bringToFront()
-
+        
         try {
           await inserirNoticia(dict)
         } catch (err) {
@@ -115,10 +113,11 @@ async function scrapCNN(URL, tipo) {
             } 
           } 
         }
-    }
-  } catch (err) {
-    console.error("Erro:", err)
-  } finally {
+      }
+    } catch (err) {
+      console.error("Erro:", err)
+    } finally {
+    await scrapingPage.close()
     await browser.close()
   }	
 }

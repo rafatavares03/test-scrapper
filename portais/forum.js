@@ -31,8 +31,8 @@ async function coletaDadosForum(pagina, link) {
     const autoresTag = document.querySelector('span.post-author-name')
     if (autoresTag) {
       let autores = autoresTag.textContent.trim(); 
-      let arra = autores.split(/[,\/]/).map(a => a.trim()).filter(a => a.length > 0);
-      dados.autores = arra
+      let array = autores.split(/[,\/]/).map(a => a.trim()).filter(a => a.length > 0);
+      dados.autores = array
     }
     // // Texto
     // let texto = "";

@@ -6,9 +6,10 @@ const { client, conectar, desconectar } = require('../banco_de_dados/bancoConnec
 async function coletaDadosCartaCapital(pagina, link) {
   await pagina.goto(link)
   return pagina.evaluate(() => {
-    let dados = {}
-    dados.portal = "Carta Capital"
-    dados._id = window.location.href
+    let dados = {
+      porta: "Carta Capital",
+      _id: window.location.href
+    }
 
     // Manchete
     let manchete = document.querySelector("section.s-content__heading h1")
@@ -58,22 +59,22 @@ async function coletaDadosCartaCapital(pagina, link) {
 
 async function scrapCartaCapital(URL, tipo) {
   const browser = await puppeteer.launch({headless: true})
-  const page = await browser.newPage()
+  const scrapingPage = await browser.newPage()
+  const paginaPortal = await browser.newPage()
   const {db, banco} = await conectar()
 
   try {
 
     for (let pagina = 500; pagina <= 600; pagina++) {
       let cartaCapitalURL = `${URL}${pagina}/`
-      await page.goto(cartaCapitalURL, { waitUntil: "domcontentloaded" })
+      await paginaPortal.bringToFront()
+      await paginaPortal.goto(cartaCapitalURL, { waitUntil: "domcontentloaded" })
 
       const links = await page.evaluate(() => {
         return Array.from(document.querySelectorAll("a.l-list__item")).map(x => x.getAttribute("href"))
       })
-      
-      let scrapingPage = await browser.newPage()
+    
       await scrapingPage.bringToFront()
-
       let dict = []
       for (let i = 0; i < links.length; i++) {
         let temp = await coletaDadosCartaCapital(scrapingPage, links[i])
@@ -84,8 +85,6 @@ async function scrapCartaCapital(URL, tipo) {
         console.log(temp.manchete) 
       }
 
-      await scrapingPage.close()
-      await page.bringToFront()
       
       try {
         await inserirNoticia(dict, db)
@@ -104,6 +103,7 @@ async function scrapCartaCapital(URL, tipo) {
     console.error("Erro:", err)
   } finally {
     await desconectar(banco)
+    await scrapingPage.close()
     await browser.close()
   }
 }
