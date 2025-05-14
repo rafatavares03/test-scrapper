@@ -1,5 +1,6 @@
 const puppeteer = require('puppeteer')
 const fs = require('fs')
+const {inserirNoticia} = require('../banco_de_dados/bancoInserir')
 
 
 async function coletaDadosG1(pagina, link) {
@@ -7,7 +8,7 @@ async function coletaDadosG1(pagina, link) {
   return await pagina.evaluate(() => {
     const dados = {
       portal: "g1",
-      link: window.location.href
+      _id : window.location.href  
     }
 
     // Manchete
@@ -49,7 +50,6 @@ async function scrapG1(URL, tipo) {
   const paginaPortal = await browser.newPage()
   const paginaScraping = await browser.newPage()
 
-  const arquivo = fs.createWriteStream(`./portais_jsons/g1-${tipo}.jsonl`, { flags: 'a' })
 
   try {
     for (let pagina = 1; pagina <= 1; pagina++) {
@@ -61,27 +61,45 @@ async function scrapG1(URL, tipo) {
         return Array.from(document.querySelectorAll(".feed-post-link")).map(x => x.getAttribute("href"))
       })
       
+
+      let dict = []
       await paginaScraping.bringToFront()
       for (let i = 0; i < links.length; i++) {
-        let dict = await coletaDadosG1(paginaScraping, links[i])
-        if(dict == null) continue;
-        // console.log(dict)
+        let temp = await coletaDadosG1(paginaScraping, links[i])
+        if(temp == null) continue
 
-        arquivo.write(JSON.stringify(dict) + '\n')
+        temp.tema = tipo
+        dict.push(temp)
+        console.log(temp)
+      }
+      
+      try {
+        await inserirNoticia(dict)
+      } catch (err) {
+        if (err.name === 'MongoBulkWriteError' || err.code === 11000) {
+          const totalErros = err.writeErrors ? err.writeErrors.length : 0
+          
+          if ((totalErros / dict.length) >= 0.5) {
+            console.warn(`Erro de duplicata = ${(totalErros / dict.length)} .`)
+            return null
+          } 
+        } 
       }
     }
-    await paginaScraping.close()
-
+    
   } catch (err) {
     console.error("Erro:", err)
   } finally {
+    await paginaScraping.close()
     await browser.close()
   }
 }
 
+
+scrapG1(`https://g1.globo.com/politica/index/feed/pagina-`, "Politica")
+scrapG1("https://g1.globo.com/economia/index/feed/pagina-", "Economia")
+
 async function scrapingG1(){
-  await scrapG1(`https://g1.globo.com/politica/index/feed/pagina-`, "politica")
-  await scrapG1("https://g1.globo.com/economia/index/feed/pagina-", "economia")
 }
 
 module.exports = {scrapingG1}
