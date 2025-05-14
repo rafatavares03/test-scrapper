@@ -1,5 +1,4 @@
 const puppeteer = require('puppeteer')
-const fs = require('fs')
 const {inserirNoticia} = require('../banco_de_dados/bancoInserir')
 
 
@@ -96,10 +95,10 @@ async function scrapG1(URL, tipo) {
 }
 
 
-scrapG1(`https://g1.globo.com/politica/index/feed/pagina-`, "Politica")
-scrapG1("https://g1.globo.com/economia/index/feed/pagina-", "Economia")
 
 async function scrapingG1(){
+  await scrapG1(`https://g1.globo.com/politica/index/feed/pagina-`, "Politica")
+  await scrapG1("https://g1.globo.com/economia/index/feed/pagina-", "Economia")
 }
 
 module.exports = {scrapingG1}
