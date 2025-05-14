@@ -79,9 +79,9 @@ async function scrapG1(URL, tipo) {
   }
 }
 
-async function scrappingG1(){
+async function scrapingG1(){
   await scrapG1(`https://g1.globo.com/politica/index/feed/pagina-`, "politica")
   await scrapG1("https://g1.globo.com/economia/index/feed/pagina-", "economia")
 }
 
-module.exports = {scrappingG1}
+module.exports = {scrapingG1}

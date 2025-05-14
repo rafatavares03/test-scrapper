@@ -6,7 +6,7 @@ async function coletaDadosAgenBr(pagina, link) {
   return await pagina.evaluate((link) => {
     const dados = {}
     dados.portal = "Agência Brasil"
-    dados.link = link
+    dados._id = link
   
     // Manchete
     let manchete = document.querySelector("h1.titulo-materia")
@@ -81,7 +81,6 @@ async function scrapAgenciaBrasil(URL, tipo) {
         let dict = await coletaDadosAgenBr(scrapingPage, links[i])
 
         if(dict == null) continue;
-        dict._id = dict.link;  // link é a chave primaria 
         // console.log(dict)
 
         arquivo.write(JSON.stringify(dict) + '\n')

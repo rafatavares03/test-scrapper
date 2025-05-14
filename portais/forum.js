@@ -53,7 +53,7 @@ async function scrapForum(URL, tipo) {
   const page = await browser.newPage()
   await page.goto(`${URL}`, { waitUntil: "domcontentloaded" })
 
-const arquivo = fs.createWriteStream(`./portais_jsons/Forum-${tipo}.jsonl`, { flags: 'a' })
+// const arquivo = fs.createWriteStream(`./portais_jsons/Forum-${tipo}.jsonl`, { flags: 'a' })
   try{
 
     for(let i = 1; i <= 1; i++){
@@ -99,7 +99,7 @@ const arquivo = fs.createWriteStream(`./portais_jsons/Forum-${tipo}.jsonl`, { fl
         dict._id = dict.link // link é a chave primaria 
         // console.log(dict)
 
-        arquivo.write(JSON.stringify(dict) + '\n')
+        // arquivo.write(JSON.stringify(dict) + '\n')
 
         // console.log("\n\n")
 

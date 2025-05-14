@@ -93,8 +93,8 @@ async function infoMoneyscrap(URL, tipo) {
 }
 
 
-async function scrappingInfoMoney(){
+async function scrapingInfoMoney(){
   infoMoneyscrap("https://www.infomoney.com.br/economia/", "Economia")
 }
 
-module.exports = {scrappingInfoMoney}
+module.exports = {scrapingInfoMoney}

@@ -1,12 +1,14 @@
 const puppeteer = require('puppeteer')
 const fs = require('fs')
+const {inserirNoticia} = require('../banco_de_dados/bancoInserir')
+const { json } = require('stream/consumers')
 
 async function coletaDadosCongressoEmFoco(pagina, link) {
   await pagina.goto(link, {waitUntil: "domcontentloaded"})
   return pagina.evaluate(() => {
     let dados = {}
     dados.portal = "Congresso em Foco"
-    dados.link = window.location.href
+    dados._id = window.location.href
 
     // Manchete
     let manchete = document.querySelector("h1.asset__title")
@@ -48,10 +50,10 @@ async function coletaDadosCongressoEmFoco(pagina, link) {
 }
 
 async function scrapCongressoEmFoco(URL, tipo) {
-  const browser = await puppeteer.launch()
+  const browser = await puppeteer.launch({headless: true})
   const page = await browser.newPage()
   
-  const arquivo = fs.createWriteStream(`./portais_jsons/Congresso-${tipo}.jsonl`, { flags: 'a' })
+  // const arquivo = fs.createWriteStream(`./portais_jsons/Congresso-${tipo}.jsonl`, { flags: 'a' })
 
   try {
 
@@ -63,27 +65,40 @@ async function scrapCongressoEmFoco(URL, tipo) {
         return Array.from(document.querySelectorAll("p.asset__title a")).map(x => x.getAttribute("href"))
       })
         
-      for(let i = 0; i < links.length; i++ ){
-        let noticia = await coletaDadosCongressoEmFoco(page, links[i])
-        // console.log(noticia)
-      }
       // console.log(links.length)
-
+      let dict = []
       let scrapingPage = await browser.newPage()
       await scrapingPage.bringToFront()
       for (let i = 0; i < links.length; i++) {
-        let dict = await coletaDadosCongressoEmFoco(scrapingPage, links[i])
-
-        if(dict == null) continue;
-        dict._id = dict.link;  // link é a chave primaria 
-        // console.log(dict)
-        arquivo.write(JSON.stringify(dict) + '\n')
-        
+        let temp = await coletaDadosCongressoEmFoco(scrapingPage, links[i])
+        if(temp == null) continue;
+        dict.push(temp)
+        // console.log("==\n")
+        console.log(temp)
+        // arquivo.write(JSON.stringify(dict) + '\n')
       }
+
       await scrapingPage.close()
       await page.bringToFront()
-    }
 
+      try {
+        await inserirNoticia(dict)
+      } catch (err) {
+        if (err.name === 'MongoBulkWriteError' || err.code === 11000) {
+          const totalErros = err.writeErrors ? err.writeErrors.length : 0
+
+          if ((totalErros / dict.length) <= 0.5) {
+            console.warn("Muitos documentos duplicados, mas dentro do tolerável.")
+            } else {
+              throw err // aborta, erro grave
+            }
+            
+        } else {
+          throw err
+        }
+      }
+
+    }
   } catch (err) {
     console.error("Erro:", err)
   } finally {
@@ -91,8 +106,8 @@ async function scrapCongressoEmFoco(URL, tipo) {
   }
 }
 
+scrapCongressoEmFoco("https://www.congressoemfoco.com.br/noticia?pagina=", "Politica")
 async function scrapingCongressoEmFoco(){
-  await scrapCongressoEmFoco("https://www.congressoemfoco.com.br/noticia?pagina=", "Politica")
 }
 
 module.exports = {scrapingCongressoEmFoco}
