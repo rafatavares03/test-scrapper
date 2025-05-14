@@ -53,15 +53,17 @@ async function coletaDadosForum(pagina, link) {
 
 async function scrapForum(URL, tipo) {
   const browser = await puppeteer.launch({headless:true})
-  const page = await browser.newPage()
-  await page.goto(`${URL}`, { waitUntil: "domcontentloaded" })
+  const scrapingPage = browser.newPage()
+  const paginaPortal = await browser.newPage()
+  await paginaPortal.goto(`${URL}`, { waitUntil: "domcontentloaded" })
 
 // const arquivo = fs.createWriteStream(`./portais_jsons/Forum-${tipo}.jsonl`, { flags: 'a' })
   try{
 
     for(let i = 1; i <= 1; i++){
       // vai pro fim
-      await page.evaluate(() => {
+      await paginaPortal.bringToFront()
+      await paginaPortal.evaluate(() => {
         window.scrollTo(0, document.body.scrollHeight);
       });
       
@@ -93,9 +95,7 @@ async function scrapForum(URL, tipo) {
           return null
       }   
       
-      let scrapingPage = await browser.newPage()
       await scrapingPage.bringToFront()
-
       let dict = []
       for (let i = 0; i < links.length; i++) {
         let temp = await coletaDadosForum(scrapingPage, links[i])
@@ -111,8 +111,6 @@ async function scrapForum(URL, tipo) {
         // console.log("\n\n")
 
       }
-      await scrapingPage.close()
-      await page.bringToFront()
       
       try {
         await inserirNoticia(dict)
@@ -132,6 +130,7 @@ async function scrapForum(URL, tipo) {
   } catch (err) {
     console.error("Erro:", err)
   } finally {
+    await scrapingPage.close()
     await browser.close()
   }
     
