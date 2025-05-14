@@ -45,6 +45,7 @@ async function scrapUol(URL, tipo) {
   const browser = await puppeteer.launch()
   const page = await browser.newPage()
   await page.goto(`${URL}`, { waitUntil: "domcontentloaded" })
+  const scrapingPage = await browser.newPage()
 
   // await new Promise(resolve => setTimeout(resolve, 2222)); // a pagina tem que esquentar
 
@@ -59,7 +60,6 @@ async function scrapUol(URL, tipo) {
         return Array.from(document.querySelectorAll("div.thumbnails-wrapper a")).map(el => el.getAttribute("href"))
       })
       
-      let scrapingPage = await browser.newPage()
       await scrapingPage.bringToFront()
       // Imprime os links
       let dict = []
@@ -69,7 +69,7 @@ async function scrapUol(URL, tipo) {
         noticia.tema = tipo
         dict.push(noticia)
       }
-      await scrapingPage.close()
+
       await page.bringToFront()
       
       await page.evaluate(() => {
@@ -86,9 +86,9 @@ async function scrapUol(URL, tipo) {
         await browser.close()
         return null
       }   
-
+      
       try {
-        await inserirNoticia(dict)
+        // await inserirNoticia(dict)
       } catch (err) {
         if (err.name === 'MongoBulkWriteError' || err.code === 11000) {
           const totalErros = err.writeErrors ? err.writeErrors.length : 0
@@ -104,16 +104,15 @@ async function scrapUol(URL, tipo) {
   } catch (err) {
     console.error("Erro:", err)
   } finally {
+    await scrapingPage.close()
     await browser.close()
   }
 }
 
+await scrapUol("https://noticias.uol.com.br/politica/", "Política")
 async function scrapingUol(){
   await scrapUol("https://economia.uol.com.br/ultimas/", "Economia")
-  await scrapUol("https://noticias.uol.com.br/politica/", "Política")
 }
-
-scrapingUol()
 
 
 module.exports = {scrapingUol}

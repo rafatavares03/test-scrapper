@@ -66,6 +66,7 @@ async function coletaDadosTempo(pagina, link) {
 async function scrapTempo(URL) {
   const browser = await puppeteer.launch({headless:true})
   const page = await browser.newPage()
+  const scrapingPage = await browser.newPage()
 
   try {
 
@@ -86,7 +87,6 @@ async function scrapTempo(URL) {
       }
 
 
-      let scrapingPage = await browser.newPage()
       await scrapingPage.bringToFront()
 
       let dict = []
@@ -102,9 +102,8 @@ async function scrapTempo(URL) {
 
         
       }
-      await scrapingPage.close()
       await page.bringToFront()
-
+      
       try {
         await inserirNoticia(dict)
       } catch (err) {
@@ -118,10 +117,11 @@ async function scrapTempo(URL) {
         } 
       }
     }
-
+    
   } catch (err) {
     console.error("Erro:", err)
   } finally {
+    await scrapingPage.close()
     await browser.close()
   }
 }
