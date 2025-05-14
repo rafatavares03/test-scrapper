@@ -47,8 +47,8 @@ async function coletaDadosG1(pagina, link) {
 
 async function scrapG1(URL, tipo) {
   const browser = await puppeteer.launch({headless : true})
-  const paginaPortal = await browser.newPage()
   const paginaScraping = await browser.newPage()
+  const paginaPortal = await browser.newPage()
 
 
   try {
