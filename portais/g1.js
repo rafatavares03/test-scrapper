@@ -4,10 +4,10 @@ const {inserirNoticia} = require('../banco_de_dados/bancoInserir')
 
 async function coletaDadosG1(pagina, link) {
   await pagina.goto(link, { waitUntil: "domcontentloaded" })
-  return await pagina.evaluate(() => {
+  return await pagina.evaluate((link) => {
     const dados = {
       portal: "g1",
-      _id : window.location.href  
+      _id : link
     }
 
     // Manchete
@@ -41,7 +41,7 @@ async function coletaDadosG1(pagina, link) {
       dados.autores = autores.map(x => x.trim())
     }
     return dados
-  })
+  }, link)
 }
 
 async function scrapG1(URL, tipo) {
@@ -51,7 +51,7 @@ async function scrapG1(URL, tipo) {
 
 
   try {
-    for (let pagina = 1; pagina <= 1; pagina++) {
+    for (let pagina = 1; pagina <= 900; pagina++) {
       let g1URL = `${URL}${pagina}.ghtml`
       await paginaPortal.bringToFront()
       await paginaPortal.goto(g1URL, { waitUntil: "domcontentloaded" })
@@ -69,7 +69,7 @@ async function scrapG1(URL, tipo) {
 
         temp.tema = tipo
         dict.push(temp)
-        console.log(temp)
+        console.log(temp._id)
       }
       
       try {
@@ -81,7 +81,9 @@ async function scrapG1(URL, tipo) {
           if ((totalErros / dict.length) >= 0.5) {
             console.warn(`Erro de duplicata = ${(totalErros / dict.length)} .`)
             return null
-          } 
+          } else {
+            console.log("inserido com sucesso\n")
+          }
         } 
       }
     }
@@ -96,9 +98,9 @@ async function scrapG1(URL, tipo) {
 
 
 
-scrapG1(`https://g1.globo.com/politica/index/feed/pagina-`, "Política")
-scrapG1("https://g1.globo.com/economia/index/feed/pagina-", "Economia")
 async function scrapingG1(){
+  await scrapG1(`https://g1.globo.com/politica/index/feed/pagina-`, "Política")
+  await scrapG1("https://g1.globo.com/economia/index/feed/pagina-", "Economia")
 }
 
 module.exports = {scrapingG1}

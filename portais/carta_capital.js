@@ -1,5 +1,6 @@
 const puppeteer = require('puppeteer')
 const {inserirNoticia} = require('../banco_de_dados/bancoInserir')
+const { client, conectar, desconectar } = require('../banco_de_dados/bancoConnection')
 
 
 async function coletaDadosCartaCapital(pagina, link) {
@@ -56,10 +57,11 @@ async function coletaDadosCartaCapital(pagina, link) {
 async function scrapCartaCapital(URL, tipo) {
   const browser = await puppeteer.launch({headless: true})
   const page = await browser.newPage()
+  const {db, banco} = await conectar()
 
   try {
 
-    for (let pagina = 1; pagina <= 1; pagina++) {
+    for (let pagina = 500; pagina <= 600; pagina++) {
       let cartaCapitalURL = `${URL}${pagina}/`
       await page.goto(cartaCapitalURL, { waitUntil: "domcontentloaded" })
 
@@ -77,14 +79,14 @@ async function scrapCartaCapital(URL, tipo) {
         if(temp == null) continue;
         temp.tema = tipo
         dict.push(temp)
-        // console.log(dict) 
+        console.log(temp.manchete) 
       }
-      
+
       await scrapingPage.close()
       await page.bringToFront()
       
       try {
-        await inserirNoticia(dict)
+        await inserirNoticia(dict, db)
       } catch (err) {
         if (err.name === 'MongoBulkWriteError' || err.code === 11000) {
           const totalErros = err.writeErrors ? err.writeErrors.length : 0
@@ -99,6 +101,7 @@ async function scrapCartaCapital(URL, tipo) {
   } catch (err) {
     console.error("Erro:", err)
   } finally {
+    await desconectar(banco)
     await browser.close()
   }
 }
