@@ -4,9 +4,10 @@ const {inserirNoticia} = require('../banco_de_dados/bancoInserir')
 async function coletaDadosCamaraDep(pagina, link) {
   await pagina.goto(link)
   return pagina.evaluate(() => {
-    let dados = {}
-    dados.portal = "Portal da Câmara dos Deputados"
-    dados._id = window.location.href
+    let dados = {
+      portal: "Portal da Câmara dos Deputados",
+      _id: window.location.href
+    }
 
     // Manchete
     let manchete = document.querySelector("h1.g-artigo__titulo")
@@ -35,6 +36,8 @@ async function coletaDadosCamaraDep(pagina, link) {
       dia = dia.join("-")
       let dataFormatada = `${dia}T${hora}-03:00`
       dados.dataPublicacao = dataFormatada
+    } else {
+      return null
     }
 
     // Autores
@@ -64,21 +67,20 @@ async function coletaDadosCamaraDep(pagina, link) {
 
 async function scrapCamaraDeputados(URL, tipo) {
   const browser = await puppeteer.launch()
-  const page = await browser.newPage()
-
+  const scrapingPage = await browser.newPage()
+  const paginaPortal = await browser.newPage()
 
   try {
     for (let pagina = 1; pagina <= 1; pagina++) {
       let tempoURL = `${URL}${pagina}`
-      await page.goto(tempoURL, { waitUntil: "domcontentloaded" })
+      await paginaPortal.bringToFront()
+      await paginaPortal.goto(tempoURL, { waitUntil: "domcontentloaded" })
 
       const links = await page.evaluate(() => {
         return Array.from(document.querySelectorAll("h3.g-chamada__titulo a")).map(x => x.getAttribute("href"))
       })
       
-      let scrapingPage = await browser.newPage()
       await scrapingPage.bringToFront()
-
       let dict = []
       for (let i = 0; i < links.length; i++) {
         let temp = await coletaDadosCamaraDep(scrapingPage, links[i])
@@ -89,10 +91,7 @@ async function scrapCamaraDeputados(URL, tipo) {
         // console.log(dict)
 
       }
-
-      await scrapingPage.close()
-      await page.bringToFront()
-
+      
       try {
         await inserirNoticia(dict)
       } catch (err) {
@@ -109,6 +108,7 @@ async function scrapCamaraDeputados(URL, tipo) {
   } catch (err) {
     console.error("Erro:", err)
   } finally {
+    await scrapingPage.close()
     await browser.close()
   }
 }

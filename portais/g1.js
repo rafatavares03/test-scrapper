@@ -22,6 +22,7 @@ async function coletaDadosG1(pagina, link) {
     // Data
     let dataPublicacao = document.querySelector('time[itemprop="dateModified"]')
     if(dataPublicacao) dados.dataPublicacao = dataPublicacao.getAttribute("datetime")
+    else return null
       
     // Autores
     let autoresTag = document.querySelector("p.top__signature__text__author-name")

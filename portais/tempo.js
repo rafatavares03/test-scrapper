@@ -36,7 +36,9 @@ async function coletaDadosTempo(pagina, link) {
 
       let dataFormatada = `${ano}-${mesNumero}-${dia.padStart(2, '0')}T${horaNova}:00`; 
       dados.data = new Date(dataFormatada).toISOString()
-    } 
+    } else {
+      return null
+    }
 
     // Autores
     let autoresTag = document.querySelector('.cmp__author-name span')

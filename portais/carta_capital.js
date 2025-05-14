@@ -36,6 +36,8 @@ async function coletaDadosCartaCapital(pagina, link) {
       dia = dia.join("-")
       let dataFormatada = `${dia}T${hora}-03:00`
       dados.dataPublicacao = dataFormatada
+    } else {
+      return null
     }
 
     // Autores

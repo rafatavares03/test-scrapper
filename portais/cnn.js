@@ -31,6 +31,8 @@ async function coletaDadosCNN(pagina, link) {
       dataFormatada = `${dia}T${hora}-03:00`
       dataFormatada = dataFormatada.replace(/\s/g, '')
       dados.dataPublicacao = dataFormatada
+    } else {
+      return null
     }
 
     // Autores

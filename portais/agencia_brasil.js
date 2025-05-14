@@ -5,9 +5,10 @@ const {inserirNoticia} = require('../banco_de_dados/bancoInserir')
 async function coletaDadosAgenBr(pagina, link) {
   await pagina.goto(link, { waitUntil: "domcontentloaded" })
   return await pagina.evaluate((link) => {
-    const dados = {}
-    dados.portal = "Agência Brasil"
-    dados._id = link
+    const dados = {
+      portal: "Agência Brasil",
+      _id: window.location.href
+    }
   
     // Manchete
     let manchete = document.querySelector("h1.titulo-materia")
@@ -26,6 +27,8 @@ async function coletaDadosAgenBr(pagina, link) {
       let [dia, mes, ano] = data.split('/')
       let dataISO = `${ano}-${mes}-${dia}T${hora}:00`
       dados.dataPublicacao = new Date(dataISO).toISOString()
+    } else {
+      return null
     }
     
     // Autores
@@ -56,13 +59,15 @@ async function coletaDadosAgenBr(pagina, link) {
 
 async function scrapAgenciaBrasil(URL, tipo) {
   const browser = await puppeteer.launch()
-  const page = await browser.newPage()
+  const scrapingPage = await browser.newPage()
+  const paginaPortal = await browser.newPage()
 
 
   try {
     for (let pagina = 1; pagina <= 1; pagina++) {
       let AgenciaURL = `${URL}${pagina}`
-      await page.goto(AgenciaURL, { waitUntil: "domcontentloaded" })
+      await paginaPortal.bringToFront()
+      await paginaPortal.goto(AgenciaURL, { waitUntil: "domcontentloaded" })
 
       const links = await page.evaluate(() => {
         return Array.from(document.querySelectorAll(".capa-noticia")).map(x => x.getAttribute("href"))
@@ -75,9 +80,8 @@ async function scrapAgenciaBrasil(URL, tipo) {
         // console.log(links[i])
       }
 
-      let scrapingPage = await browser.newPage()
+      
       await scrapingPage.bringToFront()
-
       let dict = []
       for (let i = 0; i < links.length; i++) {
         let temp = await coletaDadosAgenBr(scrapingPage, links[i])
@@ -86,9 +90,8 @@ async function scrapAgenciaBrasil(URL, tipo) {
         dict.push(temp)
         // console.log(dict)
       }
-      await scrapingPage.close()
-      await page.bringToFront()
-
+      await paginaPortal.bringToFront()
+      
       try {
         await inserirNoticia(dict)
       } catch (err) {
@@ -102,10 +105,11 @@ async function scrapAgenciaBrasil(URL, tipo) {
         } 
       }
     }
-
+    
   } catch (err) {
     console.error("Erro:", err)
   } finally {
+    await scrapingPage.close()
     await browser.close()
   }
 }

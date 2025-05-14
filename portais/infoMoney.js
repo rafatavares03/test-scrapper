@@ -24,6 +24,8 @@ async function coletaInfo(pagina, link) {
 
     if(dataPublicacao) {
         dados.data = dataPublicacao.getAttribute("datetime")
+    } else {
+      return null
     }
 
     // Autores
@@ -108,7 +110,7 @@ async function infoMoneyscrap(URL, tipo) {
 
 
 async function scrapingInfoMoney(){
-  infoMoneyscrap("https://www.infomoney.com.br/economia/", "Economia")
+  await infoMoneyscrap("https://www.infomoney.com.br/economia/", "Economia")
 }
 
 module.exports = {scrapingInfoMoney}

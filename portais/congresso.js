@@ -37,6 +37,8 @@ async function coletaDadosCongressoEmFoco(pagina, link) {
       dia = dia.join("-")
       let dataFormatada = `${dia}T${hora}-03:00`
       dados.dataPublicacao = dataFormatada.replace(" ", '')
+    } else {
+      return null
     }
 
     // // Artigo

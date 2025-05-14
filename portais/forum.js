@@ -23,6 +23,8 @@ async function coletaDadosForum(pagina, link) {
     const dataPublicacao = document.querySelector('time.fecha-time')
     if (dataPublicacao) {
       dados.data = dataPublicacao.getAttribute('datetime')
+    } else {
+      return null
     }
 
     // Autores
