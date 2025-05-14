@@ -42,7 +42,7 @@ async function coletaDadosUol(pagina, link) {
 }
 
 async function scrapUol(URL, tipo) {
-  const browser = await puppeteer.launch()
+  const browser = await puppeteer.launch({headless: false})
   const page = await browser.newPage()
   await page.goto(`${URL}`, { waitUntil: "domcontentloaded" })
   const scrapingPage = await browser.newPage()
@@ -51,13 +51,18 @@ async function scrapUol(URL, tipo) {
 
   try{
 
-    for(let i = 1; i <= 1; i++){
+    for(let i = 1; i <= 3; i++){
       await page.evaluate(() => {
         window.scrollTo(0, document.body.scrollHeight);
       });
       
       let links = await page.evaluate(() => {
-        return Array.from(document.querySelectorAll("div.thumbnails-wrapper a")).map(el => el.getAttribute("href"))
+        let vetor = Array.from(document.querySelectorAll("div.thumbnails-wrapper a")).map(el => el.getAttribute("href"))
+
+        const artigosAntigos = document.querySelectorAll('.thumbnails-item');
+        artigosAntigos.forEach(artigo => artigo.remove());
+
+        return vetor
       })
       
       await scrapingPage.bringToFront()
@@ -65,17 +70,14 @@ async function scrapUol(URL, tipo) {
       let dict = []
       for (let i = 0; i < links.length; i++) {
         let noticia = await coletaDadosUol(scrapingPage, links[i])
-        // console.log(noticia)
+        if(noticia == null) continue
+        
+        console.log(noticia)
         noticia.tema = tipo
         dict.push(noticia)
       }
 
       await page.bringToFront()
-      
-      await page.evaluate(() => {
-        const artigosAntigos = document.querySelectorAll('.thumbnails-item');
-        artigosAntigos.forEach(artigo => artigo.remove());
-      });
       
       try {
         await page.locator('button.ver-mais').click({count: 2 ,delay: 1000})
@@ -109,7 +111,7 @@ async function scrapUol(URL, tipo) {
   }
 }
 
-await scrapUol("https://noticias.uol.com.br/politica/", "Política")
+ scrapUol("https://noticias.uol.com.br/politica/", "Política")
 async function scrapingUol(){
   await scrapUol("https://economia.uol.com.br/ultimas/", "Economia")
 }
