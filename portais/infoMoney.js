@@ -44,7 +44,7 @@ async function infoMoneyscrap(URL, tipo) {
 
   try{
 
-    for(let i = 1; i <= 1; i++){
+    for(let i = 1; i <= 2; i++){
         await paginaPortal.bringToFront()
         await paginaPortal.evaluate(() => {
           window.scrollTo(0, document.body.scrollHeight);
@@ -81,12 +81,12 @@ async function infoMoneyscrap(URL, tipo) {
           temp.tema = tipo
 
           dict.push(temp)
-          // console.log(dict)
+          console.log(temp)
           // console.log("\n\n")
         }
         
         try {
-          await inserirNoticia(dict)
+          // await inserirNoticia(dict)
         } catch (err) {
           if (err.name === 'MongoBulkWriteError' || err.code === 11000) {
             const totalErros = err.writeErrors ? err.writeErrors.length : 0

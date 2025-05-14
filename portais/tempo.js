@@ -63,14 +63,14 @@ async function coletaDadosTempo(pagina, link) {
 }
 
 
-async function scrapTempo(URL) {
+async function scrapTempo(URL, tipo) {
   const browser = await puppeteer.launch({headless:true})
   const scrapingPage = await browser.newPage()
   const paginaPortal = await browser.newPage()
 
   try {
 
-    for (let pagina = 1; pagina <= 1; pagina++) {
+    for (let pagina = 1; pagina <= 2; pagina++) {
       let tempoURL = `${URL}${pagina}`
       await paginaPortal.bringToFront()
       await paginaPortal.goto(tempoURL, { waitUntil: "domcontentloaded" })
@@ -97,14 +97,14 @@ async function scrapTempo(URL) {
         temp.tema = tipo
         
         dict.push(temp)
-        // console.log(dict)
+        console.log(temp)
         // console.log("\n\n")
 
         
       }
       
       try {
-        await inserirNoticia(dict)
+        // await inserirNoticia(dict)
       } catch (err) {
         if (err.name === 'MongoBulkWriteError' || err.code === 11000) {
           const totalErros = err.writeErrors ? err.writeErrors.length : 0

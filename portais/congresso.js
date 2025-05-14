@@ -60,12 +60,12 @@ async function scrapCongressoEmFoco(URL, tipo) {
   // const arquivo = fs.createWriteStream(`./portais_jsons/Congresso-${tipo}.jsonl`, { flags: 'a' })
 
   try {
-    for (let pagina = 1; pagina <= 1; pagina++) {
+    for (let pagina = 1; pagina <= 2; pagina++) {
       let congressoURL = `${URL}${pagina}`
       await paginaPortal.bringToFront()
       await paginaPortal.goto(congressoURL, { waitUntil: "domcontentloaded" })
 
-      const links = await page.evaluate(() => {
+      const links = await paginaPortal.evaluate(() => {
         return Array.from(document.querySelectorAll("p.asset__title a")).map(x => x.getAttribute("href"))
       })
         
@@ -79,13 +79,13 @@ async function scrapCongressoEmFoco(URL, tipo) {
         dict.tema = tipo
         dict.push(temp)
         // console.log("==\n")
-        // console.log(temp)
+        console.log(temp)
         // arquivo.write(JSON.stringify(dict) + '\n')
       }
 
       
       try {
-        await inserirNoticia(dict)
+        // await inserirNoticia(dict)
       } catch (err) {
         if (err.name === 'MongoBulkWriteError' || err.code === 11000) {
           const totalErros = err.writeErrors ? err.writeErrors.length : 0

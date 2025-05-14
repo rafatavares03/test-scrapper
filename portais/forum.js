@@ -53,14 +53,14 @@ async function coletaDadosForum(pagina, link) {
 
 async function scrapForum(URL, tipo) {
   const browser = await puppeteer.launch({headless:true})
-  const scrapingPage = browser.newPage()
+  const scrapingPage = await browser.newPage()
   const paginaPortal = await browser.newPage()
   await paginaPortal.goto(`${URL}`, { waitUntil: "domcontentloaded" })
 
 // const arquivo = fs.createWriteStream(`./portais_jsons/Forum-${tipo}.jsonl`, { flags: 'a' })
   try{
 
-    for(let i = 1; i <= 1; i++){
+    for(let i = 1; i <= 2; i++){
       // vai pro fim
       await paginaPortal.bringToFront()
       await paginaPortal.evaluate(() => {
@@ -68,7 +68,7 @@ async function scrapForum(URL, tipo) {
       });
       
       // links
-      let links = await page.evaluate(() => {
+      let links = await paginaPortal.evaluate(() => {
         return Array.from(document.querySelectorAll("h2.titulo a")).map(el => el.getAttribute("href"))
       })
       
@@ -80,14 +80,14 @@ async function scrapForum(URL, tipo) {
       }
   
       // remove os links antigos
-      await page.evaluate(() => {
+      await paginaPortal.evaluate(() => {
         const artigosAntigos = document.querySelectorAll('.caja')
         artigosAntigos.forEach(artigo => artigo.remove())
       });
     
       // clica no botão
       try {
-        let clickResult = await page.locator('div.btn').click({count: 2 ,delay: 1000})
+        let clickResult = await paginaPortal.locator('div.btn').click({count: 2 ,delay: 1000})
         console.log(clickResult)
       } catch (e) {
           console.log("Não foi possível carregar novos conteúdos")
@@ -102,9 +102,9 @@ async function scrapForum(URL, tipo) {
 
         if(temp == null) continue;
         temp.tema = tipo
+        console.log(temp)
 
         dict.push(temp)
-        // console.log(dict)
 
         // arquivo.write(JSON.stringify(dict) + '\n')
 
@@ -113,7 +113,7 @@ async function scrapForum(URL, tipo) {
       }
       
       try {
-        await inserirNoticia(dict)
+        // await inserirNoticia(dict)
       } catch (err) {
         if (err.name === 'MongoBulkWriteError' || err.code === 11000) {
           const totalErros = err.writeErrors ? err.writeErrors.length : 0

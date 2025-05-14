@@ -1,5 +1,6 @@
 const puppeteer = require('puppeteer')
 const {inserirNoticia} = require('../banco_de_dados/bancoInserir')
+const { conectar, desconectar } = require('../banco_de_dados/bancoConnection')
 
 
 async function coletaDadosCNN(pagina, link) {
@@ -61,10 +62,13 @@ async function scrapCNN(URL, tipo) {
   const paginaPortal = await browser.newPage()
   await paginaPortal.goto(`${URL}`, { waitUntil: "domcontentloaded" })
 
+  const {db,client} = await conectar()
+
   try{
 
-    for(let i = 1; i <= 1; i++){    
+    for(let i = 1; i <= 2; i++){    
       await paginaPortal.bringToFront()
+
       await paginaPortal.evaluate(() => {
         window.scrollTo(0, document.body.scrollHeight);
       });
@@ -82,12 +86,13 @@ async function scrapCNN(URL, tipo) {
         let clickResult = await paginaPortal.locator('button.block-list-get-more-btn').click({count: 2 ,delay: 1000})
         // console.log(clickResult)
       } catch (e) {
-          console.log("Não foi possível carregar novos conteúdos")
-          console.log(e)
-          return null
+        console.log("Não foi possível carregar novos conteúdos")
+        console.log(e)
+        return null
       }   
-        
-        await scrapingPage.bringToFront()
+      
+      await scrapingPage.bringToFront()
+      
         let dict = []
         for (let i = 0; i < links.length; i++) {
           let temp = await coletaDadosCNN(scrapingPage, links[i])
@@ -96,12 +101,12 @@ async function scrapCNN(URL, tipo) {
           temp.tema = tipo
 
           dict.push(temp)
-          console.log(temp.manchete)
+          console.log(temp._id)
           // console.log("\n\n")
         }
         
         try {
-          await inserirNoticia(dict)
+          // await inserirNoticia(dict, db)
         } catch (err) {
           if (err.name === 'MongoBulkWriteError' || err.code === 11000) {
             const totalErros = err.writeErrors ? err.writeErrors.length : 0
@@ -116,46 +121,17 @@ async function scrapCNN(URL, tipo) {
     } catch (err) {
       console.error("Erro:", err)
     } finally {
-    await scrapingPage.close()
+    await desconectar(client)
     await browser.close()
   }	
 }
 
 async function scrapingCNN(){
-  await scrapCNN("https://www.cnnbrasil.com.br/politica/", "Política")
   await scrapCNN("https://www.cnnbrasil.com.br/economia/", "Economia")
+  await new Promise(resolve => setTimeout(resolve, 1000))
+  await scrapCNN("https://www.cnnbrasil.com.br/politica/", "Política")
 }
 
 module.exports = {scrapingCNN}
 
 
-
-// // Coleta os links das notícias
-// for(let i = 0; i <= 1000; i++) { //tem que pegar 500, na teoria
-
-//   // await page.evaluate(() => {
-//   //   window.scrollTo(0, document.body.scrollHeight);
-//   // });
-
-//   await page.evaluate((i) => {
-//     const btn = document.querySelector('.block-list-get-more-btn');
-//     if (btn) {
-//       // btn.setAttribute('data-perpage', '1000');  // deixa por enquanto tavares
-//       btn.setAttribute('data-page-block-list', `${i}`);
-//       btn.click();
-//     }
-//   }, i); 
-	
-//   await page.evaluate(() => {
-//     window.scrollTo(0, document.body.scrollHeight);
-//     });
-
-//   await new Promise(resolve => setTimeout(resolve, 10)); // pra desencargo  
-//   } 
-
-
-// console.log(links.length)
-// // // Imprime os links
-// // for (let i = 0; i < links.length; i++) {
-// //   console.log(links[i])
-// // }

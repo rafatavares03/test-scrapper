@@ -43,7 +43,7 @@ async function coletaDadosUol(pagina, link) {
 }
 
 async function scrapUol(URL, tipo) {
-  const browser = await puppeteer.launch({headless: false})
+  const browser = await puppeteer.launch({headless: true})
   const scrapingPage = await browser.newPage()
   const paginaPortal = await browser.newPage()
   await paginaPortal.goto(`${URL}`, { waitUntil: "domcontentloaded" })
@@ -52,13 +52,13 @@ async function scrapUol(URL, tipo) {
 
   try{
 
-    for(let i = 1; i <= 3; i++){
+    for(let i = 1; i <= 2; i++){
       await paginaPortal.bringToFront()
       await paginaPortal.evaluate(() => {
         window.scrollTo(0, document.body.scrollHeight);
       });
       
-      let links = await page.evaluate(() => {
+      let links = await paginaPortal.evaluate(() => {
         let vetor = Array.from(document.querySelectorAll("div.thumbnails-wrapper a")).map(el => el.getAttribute("href"))
 
         const artigosAntigos = document.querySelectorAll('.thumbnails-item');
@@ -66,21 +66,9 @@ async function scrapUol(URL, tipo) {
 
         return vetor
       })
-      
-      await scrapingPage.bringToFront()
-      // Imprime os links
-      let dict = []
-      for (let i = 0; i < links.length; i++) {
-        let noticia = await coletaDadosUol(scrapingPage, links[i])
-        if(noticia == null) continue
-        
-        console.log(noticia)
-        noticia.tema = tipo
-        dict.push(noticia)
-      }
-      
+
       try {
-        await page.locator('button.ver-mais').click({count: 2 ,delay: 1000})
+        await paginaPortal.locator('button.ver-mais').click({count: 2 ,delay: 1000})
         // console.log(clickResult)
       } catch (e) {
         console.log("Não foi possível carregar novos conteúdos")
@@ -88,6 +76,21 @@ async function scrapUol(URL, tipo) {
         await browser.close()
         return null
       }   
+      
+      await scrapingPage.bringToFront()
+      // Imprime os links
+      let dict = []
+      for (let i = 0; i < links.length; i++) {
+        let noticia = await coletaDadosUol(scrapingPage, links[i])
+        if(noticia == null) continue
+        noticia.tema = tipo
+        
+        console.log(noticia)
+
+        noticia.tema = tipo
+        dict.push(noticia)
+      }
+      
       
       try {
         // await inserirNoticia(dict)
@@ -111,8 +114,8 @@ async function scrapUol(URL, tipo) {
   }
 }
 
- scrapUol("https://noticias.uol.com.br/politica/", "Política")
 async function scrapingUol(){
+  await scrapUol("https://noticias.uol.com.br/politica/", "Política")
   await scrapUol("https://economia.uol.com.br/ultimas/", "Economia")
 }
 

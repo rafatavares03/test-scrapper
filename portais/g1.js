@@ -52,7 +52,7 @@ async function scrapG1(URL, tipo) {
 
 
   try {
-    for (let pagina = 1; pagina <= 900; pagina++) {
+    for (let pagina = 1; pagina <= 2; pagina++) {
       let g1URL = `${URL}${pagina}.ghtml`
       await paginaPortal.bringToFront()
       await paginaPortal.goto(g1URL, { waitUntil: "domcontentloaded" })
@@ -74,7 +74,7 @@ async function scrapG1(URL, tipo) {
       }
       
       try {
-        await inserirNoticia(dict)
+        // await inserirNoticia(dict)
       } catch (err) {
         if (err.name === 'MongoBulkWriteError' || err.code === 11000) {
           const totalErros = err.writeErrors ? err.writeErrors.length : 0

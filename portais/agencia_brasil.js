@@ -64,12 +64,12 @@ async function scrapAgenciaBrasil(URL, tipo) {
 
 
   try {
-    for (let pagina = 1; pagina <= 1; pagina++) {
+    for (let pagina = 1; pagina <= 2; pagina++) {
       let AgenciaURL = `${URL}${pagina}`
       await paginaPortal.bringToFront()
       await paginaPortal.goto(AgenciaURL, { waitUntil: "domcontentloaded" })
 
-      const links = await page.evaluate(() => {
+      const links = await paginaPortal.evaluate(() => {
         return Array.from(document.querySelectorAll(".capa-noticia")).map(x => x.getAttribute("href"))
       })
 
@@ -88,12 +88,12 @@ async function scrapAgenciaBrasil(URL, tipo) {
         if(temp == null) continue;
         temp.tema = tipo
         dict.push(temp)
-        // console.log(dict)
+        console.log(temp)
       }
       await paginaPortal.bringToFront()
       
       try {
-        await inserirNoticia(dict)
+        // await inserirNoticia(dict)
       } catch (err) {
         if (err.name === 'MongoBulkWriteError' || err.code === 11000) {
           const totalErros = err.writeErrors ? err.writeErrors.length : 0

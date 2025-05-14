@@ -46,7 +46,9 @@ async function coletaDadosCamaraDep(pagina, link) {
       autores = autores.innerHTML
       autores = autores.split("<br>")
       autores = autores.map(x => {
-        return x.slice(x.indexOf("–")+1, x.length).trim()
+        let index = x.search(/[–-]/); 
+        let resultado = index !== -1 ? x.slice(index + 1).trim() : x;
+        return resultado
       })
       dados.autores = autores
     }
@@ -71,12 +73,12 @@ async function scrapCamaraDeputados(URL, tipo) {
   const paginaPortal = await browser.newPage()
 
   try {
-    for (let pagina = 1; pagina <= 1; pagina++) {
+    for (let pagina = 1; pagina <= 2; pagina++) {
       let tempoURL = `${URL}${pagina}`
       await paginaPortal.bringToFront()
       await paginaPortal.goto(tempoURL, { waitUntil: "domcontentloaded" })
 
-      const links = await page.evaluate(() => {
+      const links = await paginaPortal.evaluate(() => {
         return Array.from(document.querySelectorAll("h3.g-chamada__titulo a")).map(x => x.getAttribute("href"))
       })
       
@@ -88,12 +90,12 @@ async function scrapCamaraDeputados(URL, tipo) {
 
         temp.tema = tipo
         dict.push(temp)
-        // console.log(dict)
+        console.log(temp)
 
       }
       
       try {
-        await inserirNoticia(dict)
+        // await inserirNoticia(dict)
       } catch (err) {
         if (err.name === 'MongoBulkWriteError' || err.code === 11000) {
           const totalErros = err.writeErrors ? err.writeErrors.length : 0

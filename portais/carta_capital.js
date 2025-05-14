@@ -23,7 +23,7 @@ async function coletaDadosCartaCapital(pagina, link) {
     let lide = Array.from(document.querySelectorAll("section.s-content__heading p")).map(x => x.textContent)
     if(lide.length > 0) {
       lide = lide.filter(x => x.length > 0)
-      dados.lide = lide[0]
+      dados.lide = lide[0].trim()
     } 
 
     // Data
@@ -61,16 +61,16 @@ async function scrapCartaCapital(URL, tipo) {
   const browser = await puppeteer.launch({headless: true})
   const scrapingPage = await browser.newPage()
   const paginaPortal = await browser.newPage()
-  const {db, banco} = await conectar()
+  const {db, client} = await conectar()
 
   try {
 
-    for (let pagina = 500; pagina <= 600; pagina++) {
+    for (let pagina = 1; pagina <= 2; pagina++) {
       let cartaCapitalURL = `${URL}${pagina}/`
       await paginaPortal.bringToFront()
       await paginaPortal.goto(cartaCapitalURL, { waitUntil: "domcontentloaded" })
 
-      const links = await page.evaluate(() => {
+      const links = await paginaPortal.evaluate(() => {
         return Array.from(document.querySelectorAll("a.l-list__item")).map(x => x.getAttribute("href"))
       })
     
@@ -82,12 +82,12 @@ async function scrapCartaCapital(URL, tipo) {
         if(temp == null) continue;
         temp.tema = tipo
         dict.push(temp)
-        console.log(temp.manchete) 
+        console.log(temp) 
       }
 
       
       try {
-        await inserirNoticia(dict, db)
+        // await inserirNoticia(dict, db)
       } catch (err) {
         if (err.name === 'MongoBulkWriteError' || err.code === 11000) {
           const totalErros = err.writeErrors ? err.writeErrors.length : 0
@@ -102,7 +102,7 @@ async function scrapCartaCapital(URL, tipo) {
   } catch (err) {
     console.error("Erro:", err)
   } finally {
-    await desconectar(banco)
+    await desconectar(client)
     await scrapingPage.close()
     await browser.close()
   }
