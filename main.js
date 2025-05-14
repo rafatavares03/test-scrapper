@@ -12,8 +12,8 @@ const{scrapingTempo} = require('./portais/tempo')
 
 async function main(){
     // await scrapingAgenciaBrasil()
-    // await scrapingCNN()
-    await scrapingCartaCapital()
+    await scrapingCNN()
+    // await scrapingCartaCapital()
     // await scrapingForum()
     // await scrapingG1()
     // await scrapingUol()

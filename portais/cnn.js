@@ -85,7 +85,7 @@ async function scrapCNN(URL, tipo) {
           console.log("Não foi possível carregar novos conteúdos")
           console.log(e)
           return null
-        }   
+      }   
         
         await scrapingPage.bringToFront()
         let dict = []
@@ -96,9 +96,8 @@ async function scrapCNN(URL, tipo) {
           temp.tema = tipo
 
           dict.push(temp)
-          // console.log(dict)
+          console.log(temp.manchete)
           // console.log("\n\n")
-
         }
         
         try {
@@ -128,11 +127,6 @@ async function scrapingCNN(){
 }
 
 module.exports = {scrapingCNN}
-
-
-
-
-
 
 
 
