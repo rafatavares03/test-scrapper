@@ -1,5 +1,6 @@
 const puppeteer = require('puppeteer')
 const {inserirNoticia} = require('../banco_de_dados/bancoInserir')
+const {conectar, desconectar} = require('../banco_de_dados/bancoConnection')
 
 
 async function coletaDadosG1(pagina, link) {
@@ -49,6 +50,7 @@ async function scrapG1(URL, tipo) {
   const browser = await puppeteer.launch({headless : true})
   const paginaScraping = await browser.newPage()
   const paginaPortal = await browser.newPage()
+  const {db, client} = await conectar()
 
 
   try {
@@ -70,11 +72,12 @@ async function scrapG1(URL, tipo) {
 
         temp.tema = tipo
         dict.push(temp)
-        console.log(temp._id)
+        //console.log(temp._id)
+        console.log(temp)
       }
       
       try {
-        // await inserirNoticia(dict)
+        await inserirNoticia(dict, db)
       } catch (err) {
         if (err.name === 'MongoBulkWriteError' || err.code === 11000) {
           const totalErros = err.writeErrors ? err.writeErrors.length : 0
@@ -92,6 +95,7 @@ async function scrapG1(URL, tipo) {
   } catch (err) {
     console.error("Erro:", err)
   } finally {
+    await desconectar(client)
     await paginaScraping.close()
     await browser.close()
   }

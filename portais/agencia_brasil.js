@@ -1,5 +1,6 @@
 const puppeteer = require('puppeteer')
 const {inserirNoticia} = require('../banco_de_dados/bancoInserir')
+const {conectar, desconectar} = require("../banco_de_dados/bancoConnection")
 
 
 async function coletaDadosAgenBr(pagina, link) {
@@ -17,7 +18,7 @@ async function coletaDadosAgenBr(pagina, link) {
 
     // Lide
     let lide = document.querySelector("div.linha-fina-noticia")
-    if(lide) dados.lide = lide.textContent
+    if(lide) dados.lide = lide.textContent.trim()
 
     // Data de Publicação
     let dataPublicacao = document.querySelector('.data')
@@ -26,7 +27,7 @@ async function coletaDadosAgenBr(pagina, link) {
       let [data, hora] = texto.split(' - ')
       let [dia, mes, ano] = data.split('/')
       let dataISO = `${ano}-${mes}-${dia}T${hora}:00`
-      dados.dataPublicacao = new Date(dataISO).toISOString()
+      dados.dataPublicacao = new Date(dataISO).toISOString().replace("Z", "-03:00")
     } else {
       return null
     }
@@ -61,7 +62,7 @@ async function scrapAgenciaBrasil(URL, tipo) {
   const browser = await puppeteer.launch()
   const scrapingPage = await browser.newPage()
   const paginaPortal = await browser.newPage()
-
+  const {db, client} = await conectar()
 
   try {
     for (let pagina = 1; pagina <= 2; pagina++) {
@@ -93,7 +94,7 @@ async function scrapAgenciaBrasil(URL, tipo) {
       await paginaPortal.bringToFront()
       
       try {
-        // await inserirNoticia(dict)
+        await inserirNoticia(dict, db)
       } catch (err) {
         if (err.name === 'MongoBulkWriteError' || err.code === 11000) {
           const totalErros = err.writeErrors ? err.writeErrors.length : 0
@@ -109,6 +110,7 @@ async function scrapAgenciaBrasil(URL, tipo) {
   } catch (err) {
     console.error("Erro:", err)
   } finally {
+    await desconectar(client)
     await scrapingPage.close()
     await browser.close()
   }

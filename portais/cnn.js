@@ -44,7 +44,7 @@ async function coletaDadosCNN(pagina, link) {
     } else {
       autores = new Array(autores.textContent)
     }
-    dados.autores = autores
+    if(autores.length > 0) dados.autores = autores
 
     // // Artigo
     // let artigo = Array.from(document.querySelectorAll("div.single-content p")).map(x => x.textContent)
@@ -101,12 +101,13 @@ async function scrapCNN(URL, tipo) {
           temp.tema = tipo
 
           dict.push(temp)
-          console.log(temp._id)
+          //console.log(temp._id)
+          console.log(temp)
           // console.log("\n\n")
         }
         
         try {
-          // await inserirNoticia(dict, db)
+           await inserirNoticia(dict, db)
         } catch (err) {
           if (err.name === 'MongoBulkWriteError' || err.code === 11000) {
             const totalErros = err.writeErrors ? err.writeErrors.length : 0
@@ -122,6 +123,7 @@ async function scrapCNN(URL, tipo) {
       console.error("Erro:", err)
     } finally {
     await desconectar(client)
+    await scrapingPage.close()
     await browser.close()
   }	
 }

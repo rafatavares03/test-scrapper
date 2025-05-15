@@ -1,6 +1,6 @@
 const puppeteer = require('puppeteer')
 const {inserirNoticia} = require('../banco_de_dados/bancoInserir')
-const { client, conectar, desconectar } = require('../banco_de_dados/bancoConnection')
+const { conectar, desconectar } = require('../banco_de_dados/bancoConnection')
 
 
 async function coletaDadosCartaCapital(pagina, link) {
@@ -65,7 +65,7 @@ async function scrapCartaCapital(URL, tipo) {
 
   try {
 
-    for (let pagina = 900; pagina >= 500; pagina--) {
+    for (let pagina = 1; pagina <= 2; pagina++) {
       console.log("\n", pagina, "\n")
       let cartaCapitalURL = `${URL}${pagina}/`
       await paginaPortal.bringToFront()
@@ -83,7 +83,8 @@ async function scrapCartaCapital(URL, tipo) {
         if(temp == null) continue;
         temp.tema = tipo
         dict.push(temp)
-        console.log(temp._id) 
+        //console.log(temp._id) 
+        console.log(temp)
       }
 
       

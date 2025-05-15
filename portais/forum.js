@@ -1,5 +1,6 @@
 const puppeteer = require('puppeteer')
 const {inserirNoticia} = require('../banco_de_dados/bancoInserir')
+const {conectar, desconectar} = require('../banco_de_dados/bancoConnection')
 
 
 async function coletaDadosForum(pagina, link) {
@@ -22,7 +23,7 @@ async function coletaDadosForum(pagina, link) {
     // Data de publicação
     const dataPublicacao = document.querySelector('time.fecha-time')
     if (dataPublicacao) {
-      dados.data = dataPublicacao.getAttribute('datetime')
+      dados.data = dataPublicacao.getAttribute('datetime').concat("-03:00")
     } else {
       return null
     }
@@ -55,6 +56,7 @@ async function scrapForum(URL, tipo) {
   const browser = await puppeteer.launch({headless:true})
   const scrapingPage = await browser.newPage()
   const paginaPortal = await browser.newPage()
+  const {db, client} = await conectar()
   await paginaPortal.goto(`${URL}`, { waitUntil: "domcontentloaded" })
 
 // const arquivo = fs.createWriteStream(`./portais_jsons/Forum-${tipo}.jsonl`, { flags: 'a' })
@@ -113,7 +115,7 @@ async function scrapForum(URL, tipo) {
       }
       
       try {
-        // await inserirNoticia(dict)
+        //await inserirNoticia(dict, db)
       } catch (err) {
         if (err.name === 'MongoBulkWriteError' || err.code === 11000) {
           const totalErros = err.writeErrors ? err.writeErrors.length : 0
@@ -130,6 +132,7 @@ async function scrapForum(URL, tipo) {
   } catch (err) {
     console.error("Erro:", err)
   } finally {
+    await desconectar(client)
     await scrapingPage.close()
     await browser.close()
   }

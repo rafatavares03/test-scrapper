@@ -54,7 +54,7 @@ async function coletaDadosCongressoEmFoco(pagina, link) {
 }
 
 async function scrapCongressoEmFoco(URL, tipo) {
-  const browser = await puppeteer.launch({headless: false})
+  const browser = await puppeteer.launch()
   const scrapingPage = await browser.newPage()
   const paginaPortal = await browser.newPage()
   const {db, client} = await conectar()
@@ -85,7 +85,7 @@ async function scrapCongressoEmFoco(URL, tipo) {
 
       
       try {
-        // await inserirNoticia(dict, db)
+        await inserirNoticia(dict, db)
       } catch (err) {
         if (err.name === 'MongoBulkWriteError' || err.code === 11000) {
           const totalErros = err.writeErrors ? err.writeErrors.length : 0

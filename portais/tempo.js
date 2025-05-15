@@ -36,7 +36,7 @@ async function coletaDadosTempo(pagina, link) {
       let mesNumero = meses[mesNome.toLowerCase()];
 
       let dataFormatada = `${ano}-${mesNumero}-${dia.padStart(2, '0')}T${horaNova}:00`; 
-      dados.data = new Date(dataFormatada).toISOString()
+      dados.data = new Date(dataFormatada).toISOString().replace("Z", "-03:00")
     } else {
       return null
     }
@@ -45,7 +45,7 @@ async function coletaDadosTempo(pagina, link) {
     let autoresTag = document.querySelector('.cmp__author-name span')
     if (autoresTag) {
       let autores = autoresTag.textContent.trim(); 
-      let arra = autores.split(/[,\/]/).map(a => a.trim()).filter(a => a.length > 0);
+      let arra = autores.split(/[,\|\/]" e "/).map(a => a.trim()).filter(a => a.length > 0);
       dados.autores = arra
     }
     
@@ -72,7 +72,7 @@ async function scrapTempo(URL, tipo) {
   const {db, client} = await conectar()
 
   try {
-    for (let pagina = 1; pagina <= 700; pagina++) {
+    for (let pagina = 1; pagina <= 2; pagina++) {
       // console.log("\n", pagina, "\n")
 
       let tempoURL = `${URL}${pagina}`
@@ -101,21 +101,22 @@ async function scrapTempo(URL, tipo) {
         temp.tema = tipo
         
         dict.push(temp)
-        console.log(temp._id)
+        //console.log(temp._id)
+        console.log(temp)
         // console.log("\n\n")
 
         
       }
       
       try {
-        await inserirNoticia(dict, db)
+        //await inserirNoticia(dict, db)
       } catch (err) {
         if (err.name === 'MongoBulkWriteError' || err.code === 11000) {
           const totalErros = err.writeErrors ? err.writeErrors.length : 0
           
           if ((totalErros / dict.length) >= 0.5) {
             console.warn(`Erro de duplicata = ${(totalErros / dict.length)} .`)
-            // return null
+            return null
           } 
         } 
       }
