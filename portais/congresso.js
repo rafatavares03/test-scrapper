@@ -1,5 +1,6 @@
 const puppeteer = require('puppeteer')
 const {inserirNoticia} = require('../banco_de_dados/bancoInserir')
+const { conectar, desconectar } = require('../banco_de_dados/bancoConnection')
 
 
 
@@ -53,12 +54,11 @@ async function coletaDadosCongressoEmFoco(pagina, link) {
 }
 
 async function scrapCongressoEmFoco(URL, tipo) {
-  const browser = await puppeteer.launch({headless: true})
+  const browser = await puppeteer.launch({headless: false})
   const scrapingPage = await browser.newPage()
   const paginaPortal = await browser.newPage()
+  const {db, client} = await conectar()
   
-  // const arquivo = fs.createWriteStream(`./portais_jsons/Congresso-${tipo}.jsonl`, { flags: 'a' })
-
   try {
     for (let pagina = 1; pagina <= 2; pagina++) {
       let congressoURL = `${URL}${pagina}`
@@ -85,7 +85,7 @@ async function scrapCongressoEmFoco(URL, tipo) {
 
       
       try {
-        // await inserirNoticia(dict)
+        // await inserirNoticia(dict, db)
       } catch (err) {
         if (err.name === 'MongoBulkWriteError' || err.code === 11000) {
           const totalErros = err.writeErrors ? err.writeErrors.length : 0
@@ -101,6 +101,7 @@ async function scrapCongressoEmFoco(URL, tipo) {
     console.error("Erro:", err)
   } finally {
     await scrapingPage.close()
+    await desconectar(client)
     await browser.close()
   }
 }

@@ -1,5 +1,6 @@
 const puppeteer = require('puppeteer')
 const {inserirNoticia} = require('../banco_de_dados/bancoInserir')
+const { conectar, desconectar } = require('../banco_de_dados/bancoConnection')
 
 
 async function coletaInfo(pagina, link) {
@@ -42,9 +43,11 @@ async function infoMoneyscrap(URL, tipo) {
   const paginaPortal = await browser.newPage()
   await paginaPortal.goto(`${URL}`, { waitUntil: "domcontentloaded" })
 
+  const {db, client} = await conectar()
+
   try{
 
-    for(let i = 1; i <= 2; i++){
+    for(let i = 1; i <= 200; i++){
         await paginaPortal.bringToFront()
         await paginaPortal.evaluate(() => {
           window.scrollTo(0, document.body.scrollHeight);
@@ -81,18 +84,20 @@ async function infoMoneyscrap(URL, tipo) {
           temp.tema = tipo
 
           dict.push(temp)
-          console.log(temp)
+          console.log(temp._id)
           // console.log("\n\n")
         }
         
         try {
-          // await inserirNoticia(dict)
+          await inserirNoticia(dict, db)
         } catch (err) {
           if (err.name === 'MongoBulkWriteError' || err.code === 11000) {
             const totalErros = err.writeErrors ? err.writeErrors.length : 0
           
           if ((totalErros / dict.length) >= 0.5) {
             console.warn(`Erro de duplicata = ${(totalErros / dict.length)} .`)
+            console.log("\n\n")
+            continue
             return null
           } 
         } 
@@ -102,13 +107,15 @@ async function infoMoneyscrap(URL, tipo) {
     console.error("Erro:", err)
   } finally {
     await scrapingPage.close()
+    await desconectar(client)
     await browser.close()
   }	
 }
 
 
-async function scrapingInfoMoney(){
-  await infoMoneyscrap("https://www.infomoney.com.br/economia/", "Economia")
+async function scrapingInfoMoney(){  
+  infoMoneyscrap("https://www.infomoney.com.br/economia/", "Economia")
+  
 }
 
 module.exports = {scrapingInfoMoney}

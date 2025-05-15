@@ -1,5 +1,6 @@
 const puppeteer = require('puppeteer')
 const {inserirNoticia} = require('../banco_de_dados/bancoInserir')
+const { conectar, desconectar } = require('../banco_de_dados/bancoConnection')
 
 
 async function coletaDadosTempo(pagina, link) {
@@ -68,9 +69,12 @@ async function scrapTempo(URL, tipo) {
   const scrapingPage = await browser.newPage()
   const paginaPortal = await browser.newPage()
 
-  try {
+  const {db, client} = await conectar()
 
-    for (let pagina = 1; pagina <= 2; pagina++) {
+  try {
+    for (let pagina = 1; pagina <= 700; pagina++) {
+      // console.log("\n", pagina, "\n")
+
       let tempoURL = `${URL}${pagina}`
       await paginaPortal.bringToFront()
       await paginaPortal.goto(tempoURL, { waitUntil: "domcontentloaded" })
@@ -97,21 +101,21 @@ async function scrapTempo(URL, tipo) {
         temp.tema = tipo
         
         dict.push(temp)
-        console.log(temp)
+        console.log(temp._id)
         // console.log("\n\n")
 
         
       }
       
       try {
-        // await inserirNoticia(dict)
+        await inserirNoticia(dict, db)
       } catch (err) {
         if (err.name === 'MongoBulkWriteError' || err.code === 11000) {
           const totalErros = err.writeErrors ? err.writeErrors.length : 0
           
           if ((totalErros / dict.length) >= 0.5) {
             console.warn(`Erro de duplicata = ${(totalErros / dict.length)} .`)
-            return null
+            // return null
           } 
         } 
       }
@@ -121,12 +125,21 @@ async function scrapTempo(URL, tipo) {
     console.error("Erro:", err)
   } finally {
     await scrapingPage.close()
+    await desconectar(client)
     await browser.close()
   }
 }
 
 async function scrapingTempo(){
-  await scrapTempo("https://www.otempo.com.br/politica/page/", "Política")
+   scrapTempo("https://www.otempo.com.br/politica/page/", "Política")
 }
 
 module.exports = {scrapingTempo}
+
+// async function scrapingTempo(){
+//   const promises = [
+//    scrapTempo("https://www.otempo.com.br/politica/page/", "Política", 200),
+//    scrapTempo("https://www.otempo.com.br/politica/page/", "Política", 201)
+//   ]
+//   await Promise.all(promises)
+// }

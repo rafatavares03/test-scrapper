@@ -7,7 +7,7 @@ async function coletaDadosCartaCapital(pagina, link) {
   await pagina.goto(link)
   return pagina.evaluate(() => {
     let dados = {
-      porta: "Carta Capital",
+      portal: "Carta Capital",
       _id: window.location.href
     }
 
@@ -65,7 +65,8 @@ async function scrapCartaCapital(URL, tipo) {
 
   try {
 
-    for (let pagina = 1; pagina <= 2; pagina++) {
+    for (let pagina = 900; pagina >= 500; pagina--) {
+      console.log("\n", pagina, "\n")
       let cartaCapitalURL = `${URL}${pagina}/`
       await paginaPortal.bringToFront()
       await paginaPortal.goto(cartaCapitalURL, { waitUntil: "domcontentloaded" })
@@ -82,12 +83,12 @@ async function scrapCartaCapital(URL, tipo) {
         if(temp == null) continue;
         temp.tema = tipo
         dict.push(temp)
-        console.log(temp) 
+        console.log(temp._id) 
       }
 
       
       try {
-        // await inserirNoticia(dict, db)
+        await inserirNoticia(dict, db)
       } catch (err) {
         if (err.name === 'MongoBulkWriteError' || err.code === 11000) {
           const totalErros = err.writeErrors ? err.writeErrors.length : 0
