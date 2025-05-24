@@ -27,23 +27,23 @@ async function coletaDadosCartaCapital(pagina, link) {
     } 
 
     // Data
-    let dataPublicacao = document.querySelector("div.s-content__infos span span")
+    let dataPublicacao = document.querySelector("meta[property='article:published_time']")
     if(dataPublicacao) {
-      dataPublicacao = dataPublicacao.textContent.trim()
-      dataPublicacao = dataPublicacao.split(" ")
-      let dia = dataPublicacao[0].split(".")
-      let hora = dataPublicacao[1].replace("h", ":")
-      dia.reverse()
-      dia = dia.join("-")
-      let dataFormatada = `${dia}T${hora}-03:00`
-      dados.dataPublicacao = dataFormatada
+      dataPublicacao = dataPublicacao.getAttribute('content')
+      dados.data = dataPublicacao.replace("+00:00", "-03:00")
     } else {
       return null
     }
 
     // Autores
     let autores = Array.from(document.querySelectorAll("div.s-content__infos strong")).map(x => x.textContent.trim())
-    dados.autores = autores
+    dados.autor = autores
+
+    // Tags
+    let tema = Array.from(document.querySelectorAll("meta[property='article:tag']")).map(x => x.getAttribute('content'))
+    if(tema){
+      dados.tema = tema
+    }
 
     // // Artigo 
     // let artigo = Array.from(document.querySelectorAll(".s-content__text .content-closed p")).map(x => x.innerText.trim())
@@ -61,7 +61,7 @@ async function scrapCartaCapital(URL, tipo) {
   const browser = await puppeteer.launch({headless: true})
   const scrapingPage = await browser.newPage()
   const paginaPortal = await browser.newPage()
-  const {db, client} = await conectar()
+  //const {db, client} = await conectar()
 
   try {
 
@@ -81,7 +81,7 @@ async function scrapCartaCapital(URL, tipo) {
         let temp = await coletaDadosCartaCapital(scrapingPage, links[i])
         
         if(temp == null) continue;
-        temp.tema = tipo
+        temp.secao = tipo
         dict.push(temp)
         //console.log(temp._id) 
         console.log(temp)
@@ -89,7 +89,7 @@ async function scrapCartaCapital(URL, tipo) {
 
       
       try {
-        await inserirNoticia(dict, db)
+        //await inserirNoticia(dict, db)
       } catch (err) {
         if (err.name === 'MongoBulkWriteError' || err.code === 11000) {
           const totalErros = err.writeErrors ? err.writeErrors.length : 0
@@ -104,7 +104,7 @@ async function scrapCartaCapital(URL, tipo) {
   } catch (err) {
     console.error("Erro:", err)
   } finally {
-    await desconectar(client)
+    //await desconectar(client)
     await scrapingPage.close()
     await browser.close()
   }
