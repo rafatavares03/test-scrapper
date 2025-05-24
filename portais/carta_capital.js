@@ -57,15 +57,16 @@ async function coletaDadosCartaCapital(pagina, link) {
 }
 
 
-async function scrapCartaCapital(URL, tipo) {
+async function scrapCartaCapital(URL, tipo, init) {
   const browser = await puppeteer.launch({headless: true})
   const scrapingPage = await browser.newPage()
   const paginaPortal = await browser.newPage()
   //const {db, client} = await conectar()
+  let dict = []
 
   try {
 
-    for (let pagina = 1; pagina <= 2; pagina++) {
+    for (let pagina = init; pagina <= 500; pagina+=3) {
       console.log("\n", pagina, "\n")
       let cartaCapitalURL = `${URL}${pagina}/`
       await paginaPortal.bringToFront()
@@ -76,30 +77,33 @@ async function scrapCartaCapital(URL, tipo) {
       })
     
       await scrapingPage.bringToFront()
-      let dict = []
       for (let i = 0; i < links.length; i++) {
         let temp = await coletaDadosCartaCapital(scrapingPage, links[i])
         
         if(temp == null) continue;
         temp.secao = tipo
         dict.push(temp)
-        //console.log(temp._id) 
-        console.log(temp)
+        console.log(temp._id) 
+        // console.log(temp)
       }
 
-      
       try {
+        if(pagina % 10 != init) continue
         //await inserirNoticia(dict, db)
+        console.log("inseriu\n")
+        
       } catch (err) {
         if (err.name === 'MongoBulkWriteError' || err.code === 11000) {
           const totalErros = err.writeErrors ? err.writeErrors.length : 0
           
           if ((totalErros / dict.length) >= 0.5) {
             console.warn(`Erro de duplicata = ${(totalErros / dict.length)} .`)
-            return null
+            // return null
           } 
         } 
       }
+
+      dict = []
     }
   } catch (err) {
     console.error("Erro:", err)
@@ -111,8 +115,12 @@ async function scrapCartaCapital(URL, tipo) {
 }
 
 async function scrapingCartaCapital(){
-  await scrapCartaCapital("https://www.cartacapital.com.br/politica/page/", "Política")
-  await scrapCartaCapital("https://www.cartacapital.com.br/economia/", "Economia")
+  await Promise.all([
+    scrapCartaCapital("https://www.cartacapital.com.br/economia/page/", "Economia",1),
+    scrapCartaCapital("https://www.cartacapital.com.br/economia/page/", "Economia",2),
+    scrapCartaCapital("https://www.cartacapital.com.br/economia/page/", "Economia",3)
+  ])
+  // await scrapCartaCapital("https://www.cartacapital.com.br/politica/page/", "Política")
 }
 
 module.exports = {scrapingCartaCapital}
