@@ -21,13 +21,9 @@ async function coletaDadosAgenBr(pagina, link) {
     if(lide) dados.lide = lide.textContent.trim()
 
     // Data de Publicação
-    let dataPublicacao = document.querySelector('.data')
+    let dataPublicacao = document.querySelector("meta[property='article:published_time']")
     if(dataPublicacao){
-      let texto = dataPublicacao.textContent.replace("Publicado em ", "").trim()
-      let [data, hora] = texto.split(' - ')
-      let [dia, mes, ano] = data.split('/')
-      let dataISO = `${ano}-${mes}-${dia}T${hora}:00`
-      dados.dataPublicacao = new Date(dataISO).toISOString().replace("Z", "-03:00")
+      dados.data = dataPublicacao.getAttribute("content")
     } else {
       return null
     }
@@ -40,8 +36,12 @@ async function coletaDadosAgenBr(pagina, link) {
         autores = autores.split('-')[0].trim()
         autores = autores.replace(/ e /g,",")
         autores = autores.split(',')
-        dados.autores = autores.map(x => x.trim()).filter(a => a.length > 0)
+        dados.autor = autores.map(x => x.trim()).filter(a => a.length > 0)
     }
+
+    // Tags
+    let tags = Array.from(document.querySelectorAll("a.tag")).map(x => x.textContent.toUpperCase())
+    if(tags && tags.length > 0) dados.tema = tags
 
     // // Artigo
     // let texto = "";
@@ -62,7 +62,7 @@ async function scrapAgenciaBrasil(URL, tipo) {
   const browser = await puppeteer.launch()
   const scrapingPage = await browser.newPage()
   const paginaPortal = await browser.newPage()
-  const {db, client} = await conectar()
+  //const {db, client} = await conectar()
 
   try {
     for (let pagina = 1; pagina <= 2; pagina++) {
@@ -87,14 +87,14 @@ async function scrapAgenciaBrasil(URL, tipo) {
       for (let i = 0; i < links.length; i++) {
         let temp = await coletaDadosAgenBr(scrapingPage, links[i])
         if(temp == null) continue;
-        temp.tema = tipo
+        temp.secao = tipo
         dict.push(temp)
         console.log(temp)
       }
       await paginaPortal.bringToFront()
       
       try {
-        await inserirNoticia(dict, db)
+        //await inserirNoticia(dict, db)
       } catch (err) {
         if (err.name === 'MongoBulkWriteError' || err.code === 11000) {
           const totalErros = err.writeErrors ? err.writeErrors.length : 0
@@ -110,7 +110,7 @@ async function scrapAgenciaBrasil(URL, tipo) {
   } catch (err) {
     console.error("Erro:", err)
   } finally {
-    await desconectar(client)
+    //await desconectar(client)
     await scrapingPage.close()
     await browser.close()
   }
