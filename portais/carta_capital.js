@@ -6,6 +6,8 @@ const { conectar, desconectar } = require('../banco_de_dados/bancoConnection')
 async function coletaDadosCartaCapital(pagina, link) {
   await pagina.goto(link)
   return pagina.evaluate(() => {
+    let paywall = document.querySelector(".paywall.active")
+    if(paywall) return null;
     let dados = {
       portal: "Carta Capital",
       _id: window.location.href
@@ -30,7 +32,7 @@ async function coletaDadosCartaCapital(pagina, link) {
     let dataPublicacao = document.querySelector("meta[property='article:published_time']")
     if(dataPublicacao) {
       dataPublicacao = dataPublicacao.getAttribute('content')
-      dados.data = dataPublicacao.replace("+00:00", "-03:00")
+      dados.data = dataPublicacao
     } else {
       return null
     }
@@ -40,7 +42,7 @@ async function coletaDadosCartaCapital(pagina, link) {
     dados.autor = autores
 
     // Tags
-    let tema = Array.from(document.querySelectorAll("meta[property='article:tag']")).map(x => x.getAttribute('content'))
+    let tema = Array.from(document.querySelectorAll("meta[property='article:tag']")).map(x => x.getAttribute('content').toUpperCase())
     if(tema){
       dados.tema = tema
     }
@@ -84,7 +86,7 @@ async function scrapCartaCapital(URL, tipo, init) {
         temp.secao = tipo
         dict.push(temp)
         console.log(temp._id) 
-        // console.log(temp)
+        console.log(temp)
       }
 
       try {

@@ -5,10 +5,10 @@ const { conectar, desconectar } = require('../banco_de_dados/bancoConnection')
 
 async function coletaDadosTempo(pagina, link) {
   await pagina.goto(link, { waitUntil: "domcontentloaded" })
-  return await pagina.evaluate((link) => {
+  return await pagina.evaluate(() => {
     const dados = {
       portal: "O Tempo",
-      _id: link,
+      _id: window.location.href,
     }
 
     // Manchete
@@ -36,7 +36,7 @@ async function coletaDadosTempo(pagina, link) {
       let mesNumero = meses[mesNome.toLowerCase()];
 
       let dataFormatada = `${ano}-${mesNumero}-${dia.padStart(2, '0')}T${horaNova}:00`; 
-      dados.data = new Date(dataFormatada).toISOString().replace("Z", "-03:00")
+      dados.data = new Date(dataFormatada).toISOString()
     } else {
       return null
     }
@@ -44,9 +44,20 @@ async function coletaDadosTempo(pagina, link) {
     // Autores
     let autoresTag = document.querySelector('.cmp__author-name span')
     if (autoresTag) {
-      let autores = autoresTag.textContent.trim(); 
-      let arra = autores.split(/[,\|\/]" e "/).map(a => a.trim()).filter(a => a.length > 0);
-      dados.autores = arra
+      let autores = autoresTag.textContent.trim();
+      if(autores.indexOf(' e ') >= 0) {
+        autores = autores.split(' e ')
+      } else {
+        autores =  autores.split(/[,\|]/).map(a => a.trim()).filter(a => a.length > 0)
+      }
+      let array = autores
+      dados.autor = array
+    }
+
+    // Tags
+    let tema = document.querySelector("meta[name='keywords']")
+    if(tema) {
+      dados.tema = tema.getAttribute('content').split(',')
     }
     
     // // Artigo
@@ -60,7 +71,7 @@ async function coletaDadosTempo(pagina, link) {
     // if(dados.artigo.length > 0) dados.artigo = dados.artigo.replaceAll(/\\n/g, '\n')
 
     return dados
-  }, link)
+  })
 }
 
 
@@ -69,7 +80,7 @@ async function scrapTempo(URL, tipo) {
   const scrapingPage = await browser.newPage()
   const paginaPortal = await browser.newPage()
 
-  const {db, client} = await conectar()
+  //const {db, client} = await conectar()
 
   try {
     for (let pagina = 1; pagina <= 2; pagina++) {
@@ -98,7 +109,7 @@ async function scrapTempo(URL, tipo) {
         let temp = await coletaDadosTempo(scrapingPage, links[i])
 
         if(temp == null) continue;
-        temp.tema = tipo
+        temp.secao = tipo
         
         dict.push(temp)
         //console.log(temp._id)
@@ -126,7 +137,7 @@ async function scrapTempo(URL, tipo) {
     console.error("Erro:", err)
   } finally {
     await scrapingPage.close()
-    await desconectar(client)
+    //await desconectar(client)
     await browser.close()
   }
 }

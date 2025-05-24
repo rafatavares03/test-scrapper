@@ -12,7 +12,7 @@ const{scrapingTempo} = require('./portais/tempo')
 
 async function main(){
     //await scrapingAgenciaBrasil()
-    await scrapingCartaCapital()
+    //await scrapingCartaCapital()
     //await scrapingCNN()
     //await scrapingG1()
     //await scrapingCongressoEmFoco()
@@ -21,7 +21,7 @@ async function main(){
     
     
     //await scrapingForum() // arrumar autores
-    //await scrapingTempo() // arrumar autores
+    await scrapingTempo() // arrumar autores
     // await scrapingUol() // arrumar autores 
 }
 
