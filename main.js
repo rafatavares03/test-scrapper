@@ -13,15 +13,15 @@ const{scrapingTempo} = require('./portais/tempo')
 async function main(){
     //await scrapingAgenciaBrasil()
     //await scrapingCartaCapital()
-    //await scrapingCNN()
     //await scrapingG1()
     //await scrapingCongressoEmFoco()
     //await scrapingCamaraDeputados()
     //await scrapingInfoMoney()
+    await scrapingTempo() // verificar autores
     
     
+    //await scrapingCNN() // arrumar botao 'Carregar mais'
     //await scrapingForum() // arrumar autores
-    await scrapingTempo() // arrumar autores
     // await scrapingUol() // arrumar autores 
 }
 

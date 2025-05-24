@@ -32,7 +32,7 @@ async function coletaDadosCNN(pagina, link) {
       dia = dia.join("-")
       dataFormatada = `${dia}T${hora}-03:00`
       dataFormatada = dataFormatada.replace(/\s/g, '')
-      dados.dataPublicacao = dataFormatada
+      dados.data = dataFormatada
     } else {
       return null
     }
@@ -44,7 +44,11 @@ async function coletaDadosCNN(pagina, link) {
     } else {
       autores = new Array(autores.textContent)
     }
-    if(autores.length > 0) dados.autores = autores
+    if(autores.length > 0) dados.autor = autores
+
+    // Tags
+    let tags = Array.from(document.querySelectorAll("div[data-list-tags='true'] a")).map(x => x.textContent.toUpperCase())
+    if(tags && tags.length > 0) dados.tema = tags
 
     // // Artigo
     // let artigo = Array.from(document.querySelectorAll("div.single-content p")).map(x => x.textContent)
@@ -62,7 +66,7 @@ async function scrapCNN(URL, tipo) {
   const paginaPortal = await browser.newPage()
   await paginaPortal.goto(`${URL}`, { waitUntil: "domcontentloaded" })
 
-  const {db,client} = await conectar()
+  //const {db,client} = await conectar()
 
   try{
 
@@ -98,7 +102,7 @@ async function scrapCNN(URL, tipo) {
           let temp = await coletaDadosCNN(scrapingPage, links[i])
   
           if(temp == null) continue;
-          temp.tema = tipo
+          temp.secao = tipo
 
           dict.push(temp)
           //console.log(temp._id)
@@ -107,7 +111,7 @@ async function scrapCNN(URL, tipo) {
         }
         
         try {
-           await inserirNoticia(dict, db)
+           //await inserirNoticia(dict, db)
         } catch (err) {
           if (err.name === 'MongoBulkWriteError' || err.code === 11000) {
             const totalErros = err.writeErrors ? err.writeErrors.length : 0
@@ -122,7 +126,7 @@ async function scrapCNN(URL, tipo) {
     } catch (err) {
       console.error("Erro:", err)
     } finally {
-    await desconectar(client)
+    //await desconectar(client)
     await scrapingPage.close()
     await browser.close()
   }	
